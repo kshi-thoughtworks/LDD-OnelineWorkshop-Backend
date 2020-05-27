@@ -1,5 +1,7 @@
 # LDD-OnelineWorkshop
 
+Python 3.7 is used in this project
+
 ### Start Local Server
 ```shell script
 python3 manage.py runserver
