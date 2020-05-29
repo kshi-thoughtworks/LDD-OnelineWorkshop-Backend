@@ -9,13 +9,13 @@ python3 manage.py runserver
 
 
 ### Database migration
-```shell script
-python3 manage.py migrate
-```
-
 To generate migration script for workshop application
 ```shell script
 python3 manage.py makemigrations workshop
+```
+To execute migration
+```shell script
+python3 manage.py migrate
 ```
 
 To view the SQL to be executed by the certain migrate script
