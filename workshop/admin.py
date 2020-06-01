@@ -34,7 +34,7 @@ class UserAdmin(BaseUserAdmin):
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
-            'fields': ('username', 'password', 'wechat_id', 'type', 'organization', 'phone', 'position'),
+            'fields': ('username', 'password', 'wechat_id', 'type', 'organization', 'phone', 'position', 'is_staff'),
         }),
     )
 

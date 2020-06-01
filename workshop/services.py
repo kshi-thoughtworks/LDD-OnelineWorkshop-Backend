@@ -4,6 +4,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
 from django.db.utils import IntegrityError
+from django.http import JsonResponse
 
 from .models import User
 
@@ -40,6 +41,10 @@ def login_user(request):
     user = authenticate(request, username=username, password=password)
     if user is not None:
         login(request, user)
-        return HttpResponse()
+        data = {
+            'username': user.username,
+            'is_coach': user.is_staff
+        }
+        return JsonResponse(data)
     else:
         return HttpResponse(status=401)
