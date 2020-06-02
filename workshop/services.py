@@ -48,7 +48,7 @@ def login_user(request):
 
 
 @login_required
-def get_workshop_by_user(request):
+def get_workshops_by_user(request):
     current_user = request.user
     user_workbenches = UserWorkbench.objects.filter(user_id=current_user)
     print(user_workbenches)

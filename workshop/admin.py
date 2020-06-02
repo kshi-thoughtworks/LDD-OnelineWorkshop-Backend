@@ -39,7 +39,15 @@ class UserAdmin(BaseUserAdmin):
     )
 
 
+class WorkshopAdmin(admin.ModelAdmin):
+    list_display = ('name', 'description', 'created_by', 'created_at')
+
+
+class WorkbenchAdmin(admin.ModelAdmin):
+    list_display = ('name', 'workshop_id')
+
+
 admin.site.register(User, UserAdmin)
-admin.site.register(Workshop)
-admin.site.register(Workbench)
+admin.site.register(Workshop, WorkshopAdmin)
+admin.site.register(Workbench, WorkbenchAdmin)
 admin.site.register(UserWorkbench)
