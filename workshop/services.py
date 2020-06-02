@@ -5,12 +5,9 @@ from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
 from django.db.utils import IntegrityError
 from django.http import JsonResponse
+from functools import reduce
 
-from .models import User
-
-
-def index(request):
-    return HttpResponse("Hello, world. You're at the workshop index.")
+from .models import User, Workshop, UserWorkbench
 
 
 @login_required
@@ -48,3 +45,27 @@ def login_user(request):
         return JsonResponse(data)
     else:
         return HttpResponse(status=401)
+
+
+@login_required
+def get_workshop_by_user(request):
+    current_user = request.user
+    user_workbenches = UserWorkbench.objects.filter(user_id=current_user)
+    print(user_workbenches)
+
+    def get_unique_workshop(workshop_list, user_workbench: UserWorkbench):
+        workshop = Workshop.objects.get(workbench=user_workbench.workbench_id)
+        workshop_ids = {item['id'] for item in workshop_list}
+        if workshop.id in workshop_ids:
+            return workshop_list
+        else:
+            return workshop_list + [
+                {
+                    "id": workshop.id,
+                    "name": workshop.name,
+                    "description": workshop.description
+                }
+            ]
+
+    workshops = reduce(get_unique_workshop, [[], ] + list(user_workbenches))
+    return HttpResponse(workshops)

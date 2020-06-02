@@ -36,4 +36,4 @@ class UserWorkbench(models.Model):
     workbench_id = models.ForeignKey(Workbench, on_delete=models.CASCADE)
 
     def __str__(self):
-        return f'{self.workbench_id.name} : {self.user_id.name}'
+        return f'{self.workbench_id.name} : {self.user_id.username}'
