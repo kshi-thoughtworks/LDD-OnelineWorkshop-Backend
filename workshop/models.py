@@ -51,6 +51,7 @@ class Card(models.Model):
 class Step(models.Model):
     name = models.CharField(max_length=100)
     workbench = models.ForeignKey(Workbench, on_delete=models.CASCADE)
+    order = models.IntegerField()
 
     def __str__(self):
         return self.name
@@ -64,4 +65,4 @@ class Sticker(models.Model):
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
 
     def __str__(self):
-        return self.id + self.type
+        return self.content

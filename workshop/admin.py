@@ -52,7 +52,11 @@ class CardAdmin(admin.ModelAdmin):
 
 
 class StepAdmin(admin.ModelAdmin):
-    list_display = ('name', 'workbench')
+    list_display = ('name', 'workbench', 'order')
+
+
+class StickerAdmin(admin.ModelAdmin):
+    list_display = ('id', 'type', 'content', 'step', 'card', 'created_by')
 
 
 admin.site.register(User, UserAdmin)
@@ -61,4 +65,4 @@ admin.site.register(Workbench, WorkbenchAdmin)
 admin.site.register(UserWorkbench)
 admin.site.register(Card, CardAdmin)
 admin.site.register(Step, StepAdmin)
-admin.site.register(Sticker)
+admin.site.register(Sticker, StickerAdmin)
