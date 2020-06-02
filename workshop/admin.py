@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-from .models import User, Workshop, Workbench, UserWorkbench
+from .models import User, Workshop, Workbench, UserWorkbench, Card, Step, Sticker
 
 
 class UserCreationForm(forms.ModelForm):
@@ -47,7 +47,18 @@ class WorkbenchAdmin(admin.ModelAdmin):
     list_display = ('name', 'workshop_id')
 
 
+class CardAdmin(admin.ModelAdmin):
+    list_display = ('name', 'type', 'description')
+
+
+class StepAdmin(admin.ModelAdmin):
+    list_display = ('name', 'workbench')
+
+
 admin.site.register(User, UserAdmin)
 admin.site.register(Workshop, WorkshopAdmin)
 admin.site.register(Workbench, WorkbenchAdmin)
 admin.site.register(UserWorkbench)
+admin.site.register(Card, CardAdmin)
+admin.site.register(Step, StepAdmin)
+admin.site.register(Sticker)
