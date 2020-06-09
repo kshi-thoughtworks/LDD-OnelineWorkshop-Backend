@@ -1,16 +1,16 @@
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import authenticate, login
-from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from functools import reduce
 from marshmallow.exceptions import ValidationError
 
 from .models import User, Workshop, UserWorkbench
 from .schemas import CreateUser, LoginUser
+from .decorators import login_required_401
 
 
-@login_required
+@login_required_401
 def list_users(request):
     users = User.objects.all()
     return HttpResponse(users, content_type="text/plain")
@@ -45,7 +45,7 @@ def login_user(request):
         return HttpResponse("username or password is invalid", status=401)
 
 
-@login_required
+@login_required_401
 def get_workshops_by_user(request):
     current_user = request.user
     user_workbenches = UserWorkbench.objects.filter(user_id=current_user)
