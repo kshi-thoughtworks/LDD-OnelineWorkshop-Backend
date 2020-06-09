@@ -1,13 +1,13 @@
-import json
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
-from django.db.utils import IntegrityError
 from django.http import JsonResponse
 from functools import reduce
+from marshmallow.exceptions import ValidationError
 
 from .models import User, Workshop, UserWorkbench
+from .schemas import CreateUser, LoginUser
 
 
 @login_required
@@ -18,24 +18,22 @@ def list_users(request):
 
 @csrf_exempt
 def register_user(request):
-    data = json.loads(request.body.decode('utf-8'))
-    username = data.get('username', '')
-    password = data.get('password', '')
     try:
-        User.objects.create_user(username=username, password=password)
-    except ValueError as e:
-        return HttpResponse(e, status=400)
-    except IntegrityError as e:
+        user = CreateUser.Schema().loads(request.body)
+        User.objects.create_user(username=user.username, email=user.email, password=user.password)
+    except Exception as e:
         return HttpResponse(e, status=400)
     return HttpResponse()
 
 
 @csrf_exempt
 def login_user(request):
-    data = json.loads(request.body.decode('utf-8'))
-    username = data.get('username', '')
-    password = data.get('password', '')
-    user = authenticate(request, username=username, password=password)
+    try:
+        user_data = LoginUser.Schema().loads(request.body)
+    except ValidationError as e:
+        return HttpResponse(e, status=400)
+
+    user = authenticate(request, username=user_data.username, password=user_data.password)
     if user is not None:
         login(request, user)
         data = {
@@ -44,7 +42,7 @@ def login_user(request):
         }
         return JsonResponse(data)
     else:
-        return HttpResponse(status=401)
+        return HttpResponse("username or password is invalid", status=401)
 
 
 @login_required
