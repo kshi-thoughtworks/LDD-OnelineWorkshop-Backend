@@ -14,5 +14,5 @@ class CreateUser:
 
 @dataclass
 class LoginUser:
-    username: str = field()
+    name_or_email: str = field()
     password: str = field()

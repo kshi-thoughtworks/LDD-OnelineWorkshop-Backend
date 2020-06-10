@@ -33,12 +33,17 @@ def login_user(request):
     except ValidationError as e:
         return HttpResponse(e, status=400)
 
-    user = authenticate(request, username=user_data.username, password=user_data.password)
-    if user is not None:
-        login(request, user)
+    if "@" in user_data.name_or_email:
+        username = User.objects.get(email=user_data.name_or_email).username
+    else:
+        username = user_data.name_or_email
+
+    auth_user = authenticate(request, username=username, password=user_data.password)
+    if auth_user is not None:
+        login(request, auth_user)
         data = {
-            'username': user.username,
-            'is_coach': user.is_staff
+            'username': auth_user.username,
+            'is_coach': auth_user.is_staff
         }
         return JsonResponse(data)
     else:
