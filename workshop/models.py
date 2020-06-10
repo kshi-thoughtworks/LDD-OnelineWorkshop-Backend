@@ -3,6 +3,7 @@ from django.contrib.auth.models import AbstractUser
 
 
 class User(AbstractUser):
+    email = models.CharField(unique=True, max_length=100, verbose_name='email address')
     wechat_id = models.IntegerField(null=True)
     type = models.CharField(max_length=20, null=True)
     organization = models.CharField(max_length=100, null=True)

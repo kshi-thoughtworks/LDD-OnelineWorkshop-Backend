@@ -2,6 +2,7 @@ from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import authenticate, login
 from django.http import JsonResponse
+from django.db.utils import IntegrityError
 from functools import reduce
 from marshmallow.exceptions import ValidationError
 
@@ -21,8 +22,12 @@ def register_user(request):
     try:
         user = CreateUser.Schema().loads(request.body)
         User.objects.create_user(username=user.username, email=user.email, password=user.password)
+    except IntegrityError as e:
+        if str.startswith(str(e), "UNIQUE constraint failed"):
+            field = str(e).split(".")[1]
+            return HttpResponse(f'{field} already exists', status=400)
     except Exception as e:
-        return HttpResponse(e, status=400)
+        return HttpResponse(e, status=422)
     return HttpResponse()
 
 
