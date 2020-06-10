@@ -34,7 +34,11 @@ def login_user(request):
         return HttpResponse(e, status=400)
 
     if "@" in user_data.name_or_email:
-        username = User.objects.get(email=user_data.name_or_email).username
+        try:
+            user = User.objects.get(email=user_data.name_or_email)
+        except User.DoesNotExist:
+            return HttpResponse("username or password is invalid", status=401)
+        username = user.username
     else:
         username = user_data.name_or_email
 
