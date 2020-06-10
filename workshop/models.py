@@ -26,7 +26,9 @@ class Workshop(models.Model):
 
 class Workbench(models.Model):
     name = models.CharField(max_length=100)
-    workshop = models.ForeignKey(Workshop, on_delete=models.CASCADE)
+    description = models.CharField(max_length=200, null=True)
+    workshop = models.ForeignKey(Workshop, on_delete=models.SET_NULL, null=True)
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
 
     def __str__(self):
         return self.name

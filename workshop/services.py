@@ -3,10 +3,9 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import authenticate, login
 from django.http import JsonResponse
 from django.db.utils import IntegrityError
-from functools import reduce
 from marshmallow.exceptions import ValidationError
 
-from .models import User, Workshop, UserWorkbench
+from .models import User, UserWorkbench
 from .schemas import CreateUser, LoginUser
 from .decorators import login_required_401
 
@@ -60,24 +59,17 @@ def login_user(request):
 
 
 @login_required_401
-def get_workshops_by_user(request):
+def get_workbenches_by_user(request):
     current_user = request.user
     user_workbenches = UserWorkbench.objects.filter(user_id=current_user)
-    print(user_workbenches)
 
-    def get_unique_workshop(workshop_list, user_workbench: UserWorkbench):
-        workshop = Workshop.objects.get(workbench=user_workbench.workbench_id)
-        workshop_ids = {item['id'] for item in workshop_list}
-        if workshop.id in workshop_ids:
-            return workshop_list
-        else:
-            return workshop_list + [
-                {
-                    "id": workshop.id,
-                    "name": workshop.name,
-                    "description": workshop.description
-                }
-            ]
+    def get_workbench(user_workbench: UserWorkbench):
+        workbench = user_workbench.workbench
+        return {
+            "id": workbench.id,
+            "name": workbench.name,
+            "description": workbench.description
+        }
+    workbenches = map(get_workbench, user_workbenches)
 
-    workshops = reduce(get_unique_workshop, [[], ] + list(user_workbenches))
-    return HttpResponse(workshops)
+    return HttpResponse(workbenches)
