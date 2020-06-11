@@ -5,9 +5,9 @@ from django.http import JsonResponse
 from django.db.utils import IntegrityError
 from marshmallow.exceptions import ValidationError
 
-from .models import User, UserWorkbench
-from .schemas import CreateUser, LoginUser
-from .decorators import login_required_401
+from .models import User, UserWorkbench, Workbench, Workshop
+from .schemas import CreateUser, LoginUser, CreateWorkbench
+from .decorators import login_required_401, http_method
 
 
 @login_required_401
@@ -70,6 +70,39 @@ def get_workbenches_by_user(request):
             "name": workbench.name,
             "description": workbench.description
         }
+
     workbenches = map(get_workbench, user_workbenches)
 
     return HttpResponse(workbenches)
+
+
+@csrf_exempt
+@login_required_401
+def create_workbench(request):
+    try:
+        create_workbench = CreateWorkbench.Schema().loads(request.body)
+        workbench = Workbench(name=create_workbench.name, description=create_workbench.description,
+                              workshop=Workshop.objects.get(id=create_workbench.workshop_id),
+                              create_by=request.user)
+        workbench.save()
+        return HttpResponse()
+    except ValidationError as e:
+        return HttpResponse(e, status=400)
+    except Exception as e:
+        return HttpResponse(e, status=500)
+
+
+@login_required_401
+@http_method('GET')
+def get_workbench_by_id(request, workbench_id):
+    try:
+        workbench = Workbench.objects.get(id=workbench_id)
+        data = {
+            'name': workbench.name,
+            'description': workbench.description,
+            'workshop_id': workbench.workshop.id,
+            'created_by': workbench.created_by
+        }
+        return JsonResponse(data)
+    except ValidationError as e:
+        return HttpResponse(e, status=400)
