@@ -3,7 +3,6 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import authenticate, login
 from django.http import JsonResponse
 from django.db.utils import IntegrityError
-from django.utils import timezone
 from marshmallow.exceptions import ValidationError
 
 from .models import User, UserWorkbench, Workbench, Workshop
@@ -70,12 +69,11 @@ def get_workbenches_by_user(request):
             "id": workbench.id,
             "name": workbench.name,
             "description": workbench.description,
-            "created_at": workbench.created_at
+            "created_at": workbench.created_at.strftime("%Y-%m-%d")
         }
+    workbenches = list(map(get_workbench, user_workbenches))
 
-    workbenches = map(get_workbench, user_workbenches)
-
-    return HttpResponse(workbenches)
+    return JsonResponse(workbenches, safe=False)
 
 
 @csrf_exempt
