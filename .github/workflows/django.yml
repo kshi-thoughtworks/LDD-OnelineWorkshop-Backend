@@ -38,7 +38,7 @@ jobs:
           # git clone https://github.com/kshi-thoughtworks/LDD-OnelineWorkshop-Backend.git
           # cd LDD-OnelineWorkshop-Backend
           # sudo docker build -t ldd-app .
-          # sudo docker run -it --rm -p 8080:8080 --name djapp ldd-app:latest
+          # sudo docker run -d -it --rm -p 8080:8080 --name djapp ldd-app:latest
           # cd /home/ubuntu
           # rm -rf LDD-OnelineWorkshop-Backend
 
