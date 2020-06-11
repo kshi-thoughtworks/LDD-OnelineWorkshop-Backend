@@ -68,7 +68,8 @@ def get_workbenches_by_user(request):
         return {
             "id": workbench.id,
             "name": workbench.name,
-            "description": workbench.description
+            "description": workbench.description,
+            "created_at": workbench.created_at
         }
     workbenches = map(get_workbench, user_workbenches)
 

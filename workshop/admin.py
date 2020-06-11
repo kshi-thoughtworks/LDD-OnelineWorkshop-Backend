@@ -44,7 +44,7 @@ class WorkshopAdmin(admin.ModelAdmin):
 
 
 class WorkbenchAdmin(admin.ModelAdmin):
-    list_display = ('name', 'workshop_id')
+    list_display = ('name', 'created_by', 'created_at')
 
 
 class CardAdmin(admin.ModelAdmin):
