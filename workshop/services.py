@@ -1,16 +1,14 @@
 from django.http import HttpResponse
-from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import authenticate, login
 from django.http import JsonResponse
 from django.db.utils import IntegrityError
 from marshmallow.exceptions import ValidationError
 
 from .models import User, UserWorkbench, Workbench, Workshop
-from .schemas import CreateUser, LoginUser, CreateWorkbench
+from .schemas import CreateUser, LoginUser, CreateWorkbench, AddUserToWorkbench
 from .decorators import login_required_401, http_method
 
 
-@csrf_exempt
 def register_user(request):
     try:
         user = CreateUser.Schema().loads(request.body)
@@ -24,7 +22,6 @@ def register_user(request):
     return HttpResponse()
 
 
-@csrf_exempt
 def login_user(request):
     try:
         user_data = LoginUser.Schema().loads(request.body)
@@ -96,7 +93,6 @@ def list_workbenches_by_user(request):
     return JsonResponse(workbenches, safe=False)
 
 
-@csrf_exempt
 @login_required_401
 def create_workbench(request):
     try:
@@ -127,3 +123,16 @@ def get_workbench_by_id(request, workbench_id):
         return JsonResponse(data)
     except ValidationError as e:
         return HttpResponse(e, status=400)
+
+
+@login_required_401
+def add_user_to_workbench(request):
+    try:
+        data = AddUserToWorkbench.Schema().loads(request.body)
+        workbench = Workbench.objects.get(id=data.workbench_id)
+        user = User.objects.get(id=data.user_id)
+        user_workbench = UserWorkbench(user=user, workbench=workbench)
+        user_workbench.save()
+    except Exception as e:
+        return HttpResponse(e, status=422)
+    return HttpResponse()

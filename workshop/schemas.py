@@ -17,8 +17,15 @@ class LoginUser:
     name_or_email: str = field()
     password: str = field()
 
+
 @dataclass
 class CreateWorkbench:
     name: str = field(metadata={"validate": marshmallow.validate.Length(min=1, max=20)})
     description: str = field(metadata={"validate": marshmallow.validate.Length(min=0, max=200)})
     workshop_id: int = field()
+
+
+@dataclass
+class AddUserToWorkbench:
+    user_id: int = field()
+    workbench_id: int = field()
