@@ -3,6 +3,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import authenticate, login
 from django.http import JsonResponse
 from django.db.utils import IntegrityError
+from django.utils import timezone
 from marshmallow.exceptions import ValidationError
 
 from .models import User, UserWorkbench, Workbench, Workshop
@@ -84,7 +85,7 @@ def create_workbench(request):
         create_workbench = CreateWorkbench.Schema().loads(request.body)
         workbench = Workbench(name=create_workbench.name, description=create_workbench.description,
                               workshop=Workshop.objects.get(id=create_workbench.workshop_id),
-                              create_by=request.user)
+                              created_by=request.user)
         workbench.save()
         return HttpResponse()
     except ValidationError as e:
@@ -102,7 +103,8 @@ def get_workbench_by_id(request, workbench_id):
             'name': workbench.name,
             'description': workbench.description,
             'workshop_id': workbench.workshop.id,
-            'created_by': workbench.created_by
+            'created_by': workbench.created_by,
+            'created_at': workbench.created_at
         }
         return JsonResponse(data)
     except ValidationError as e:
