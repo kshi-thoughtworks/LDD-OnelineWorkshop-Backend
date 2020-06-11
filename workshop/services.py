@@ -10,12 +10,6 @@ from .schemas import CreateUser, LoginUser, CreateWorkbench
 from .decorators import login_required_401, http_method
 
 
-@login_required_401
-def list_users(request):
-    users = User.objects.all()
-    return HttpResponse(users, content_type="text/plain")
-
-
 @csrf_exempt
 def register_user(request):
     try:
@@ -59,7 +53,33 @@ def login_user(request):
 
 
 @login_required_401
-def get_workbenches_by_user(request):
+def list_users(request):
+    users = User.objects.all()
+
+    def get_user_data(user: User):
+        return {
+            'username': user.username,
+            'email': user.email
+        }
+    users_data = list(map(get_user_data, users))
+    return JsonResponse(users_data, safe=False)
+
+
+@login_required_401
+def list_users_by_workbench(request, workbench_id: int):
+    user_workbenches = UserWorkbench.objects.filter(workbench=workbench_id)
+
+    def get_user_data(user_workbench: UserWorkbench):
+        return {
+            'username': user_workbench.user.username,
+            'email': user_workbench.user.email
+        }
+    users_data = list(map(get_user_data, user_workbenches))
+    return JsonResponse(users_data, safe=False)
+
+
+@login_required_401
+def list_workbenches_by_user(request):
     current_user = request.user
     user_workbenches = UserWorkbench.objects.filter(user_id=current_user)
 
