@@ -8,13 +8,15 @@ from .models import User, UserWorkbench, Workbench, Workshop
 from .schemas import CreateUser, LoginUser, CreateWorkbench, AddUsers
 from .decorators import login_required_401, http_method
 
+UNIQUE_ERROR_PREFIX = "UNIQUE constraint failed"
+
 
 def register_user(request):
     try:
         user = CreateUser.Schema().loads(request.body)
         User.objects.create_user(username=user.username, email=user.email, password=user.password)
     except IntegrityError as e:
-        if str.startswith(str(e), "UNIQUE constraint failed"):
+        if str.startswith(str(e), UNIQUE_ERROR_PREFIX):
             field = str(e).split(".")[1]
             return HttpResponse(f'{field} already exists', status=400)
     except Exception as e:
@@ -86,12 +88,15 @@ def users_in_workbench(request, workbench_id: int):
     elif request.method == 'POST':
         try:
             user_ids = AddUsers.Schema().loads(request.body).user_ids
-            print(user_ids)
             workbench = Workbench.objects.get(id=workbench_id)
             for user_id in user_ids:
-                user = User.objects.get(id=user_id)
-                user_workbench = UserWorkbench(user=user, workbench=workbench)
-                user_workbench.save()
+                try:
+                    user = User.objects.get(id=user_id)
+                    user_workbench = UserWorkbench(user=user, workbench=workbench)
+                    user_workbench.save()
+                except IntegrityError as e:
+                    if str.startswith(str(e), UNIQUE_ERROR_PREFIX):
+                        return HttpResponse(f'user_id {user_id} already exists in workbench_id {workbench_id}', status=400)
         except Exception as e:
             return HttpResponse(e, status=422)
         return HttpResponse()

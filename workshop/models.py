@@ -39,6 +39,11 @@ class UserWorkbench(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     workbench = models.ForeignKey(Workbench, on_delete=models.CASCADE)
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['user', 'workbench'], name='unique_assign')
+        ]
+
     def __str__(self):
         return f'{self.workbench.name} : {self.user.username}'
 
