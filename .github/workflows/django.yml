@@ -28,17 +28,17 @@ jobs:
     - name: Run Tests
       run: |
         python manage.py test
-#     - name: Deploy
-      # uses: appleboy/ssh-action@master
-      # with:
-        # host: 52.81.18.241
-        # username: ubuntu
-        # key: ${{ secrets.AWS_KEY }}
-        # script: |
-          # git clone https://github.com/kshi-thoughtworks/LDD-OnelineWorkshop-Backend.git
-          # cd LDD-OnelineWorkshop-Backend
-          # sudo docker build -t ldd-app .
-          # sudo docker run -d -it --rm -p 8080:8080 --name djapp ldd-app:latest
-          # cd /home/ubuntu
-          # rm -rf LDD-OnelineWorkshop-Backend
+    - name: Deploy to EC2
+      uses: appleboy/ssh-action@master
+      with:
+        host: 52.81.18.241
+        username: ubuntu
+        key: ${{ secrets.DEPLOY_KEY }}
+        script: |
+          rm -rf LDD-OnelineWorkshop-Backend
+          git clone https://github.com/kshi-thoughtworks/LDD-OnelineWorkshop-Backend.git
+          cd LDD-OnelineWorkshop-Backend
+          sh deploy/build_image.sh
+          sudo docker-compose -f deploy/docker-compose.yml down
+          sudo docker-compose -f deploy/docker-compose.yml up -d
 
