@@ -16,7 +16,10 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import include, path
 
+import version
+
 urlpatterns = [
     path('workshop/', include('workshop.urls')),
     path('admin/', admin.site.urls),
+    path('version', version.get_version, name='version'),
 ]
