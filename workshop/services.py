@@ -5,7 +5,7 @@ from django.db.utils import IntegrityError
 from marshmallow.exceptions import ValidationError
 
 from .models import User, UserWorkbench, Workbench, Workshop
-from .schemas import CreateUser, LoginUser, CreateWorkbench, AddUserToWorkbench
+from .schemas import CreateUser, LoginUser, CreateWorkbench, AddUsers
 from .decorators import login_required_401, http_method
 
 
@@ -63,16 +63,38 @@ def list_users(request):
 
 
 @login_required_401
-def list_users_by_workbench(request, workbench_id: int):
-    user_workbenches = UserWorkbench.objects.filter(workbench=workbench_id)
+@http_method(['GET', 'POST'])
+def users_in_workbench(request, workbench_id: int):
+    """
+    GET: List all users in workbench
+    PUT: Add users to workbench
+    :param request:
+    :param workbench_id:
+    :return:
+    """
+    if request.method == 'GET':
+        user_workbenches = UserWorkbench.objects.filter(workbench=workbench_id)
 
-    def get_user_data(user_workbench: UserWorkbench):
-        return {
-            'username': user_workbench.user.username,
-            'email': user_workbench.user.email
-        }
-    users_data = list(map(get_user_data, user_workbenches))
-    return JsonResponse(users_data, safe=False)
+        def get_user_data(user_workbench: UserWorkbench):
+            return {
+                'username': user_workbench.user.username,
+                'email': user_workbench.user.email
+            }
+        users_data = list(map(get_user_data, user_workbenches))
+        return JsonResponse(users_data, safe=False)
+
+    elif request.method == 'POST':
+        try:
+            user_ids = AddUsers.Schema().loads(request.body).user_ids
+            print(user_ids)
+            workbench = Workbench.objects.get(id=workbench_id)
+            for user_id in user_ids:
+                user = User.objects.get(id=user_id)
+                user_workbench = UserWorkbench(user=user, workbench=workbench)
+                user_workbench.save()
+        except Exception as e:
+            return HttpResponse(e, status=422)
+        return HttpResponse()
 
 
 @login_required_401
@@ -109,7 +131,7 @@ def create_workbench(request):
 
 
 @login_required_401
-@http_method('GET')
+@http_method(['GET'])
 def get_workbench_by_id(request, workbench_id):
     try:
         workbench = Workbench.objects.get(id=workbench_id)
@@ -123,16 +145,3 @@ def get_workbench_by_id(request, workbench_id):
         return JsonResponse(data)
     except ValidationError as e:
         return HttpResponse(e, status=400)
-
-
-@login_required_401
-def add_user_to_workbench(request):
-    try:
-        data = AddUserToWorkbench.Schema().loads(request.body)
-        workbench = Workbench.objects.get(id=data.workbench_id)
-        user = User.objects.get(id=data.user_id)
-        user_workbench = UserWorkbench(user=user, workbench=workbench)
-        user_workbench.save()
-    except Exception as e:
-        return HttpResponse(e, status=422)
-    return HttpResponse()

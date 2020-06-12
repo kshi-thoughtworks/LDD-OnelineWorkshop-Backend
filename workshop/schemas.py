@@ -1,4 +1,5 @@
 from dataclasses import field
+from typing import List
 
 from marshmallow_dataclass import dataclass
 
@@ -26,6 +27,5 @@ class CreateWorkbench:
 
 
 @dataclass
-class AddUserToWorkbench:
-    user_id: int = field()
-    workbench_id: int = field()
+class AddUsers:
+    user_ids: List[int] = field()
