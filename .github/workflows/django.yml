@@ -35,9 +35,8 @@ jobs:
         username: ubuntu
         key: ${{ secrets.DEPLOY_KEY }}
         script: |
-          rm -rf LDD-OnelineWorkshop-Backend
-          git clone https://github.com/kshi-thoughtworks/LDD-OnelineWorkshop-Backend.git
           cd LDD-OnelineWorkshop-Backend
+          git pull
           sh deploy/build_image.sh
           sudo docker-compose -f deploy/docker-compose.yml down
           sudo docker-compose -f deploy/docker-compose.yml up -d

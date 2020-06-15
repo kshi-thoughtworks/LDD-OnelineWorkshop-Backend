@@ -3,6 +3,7 @@ from django.http import HttpResponse
 from django.contrib.auth import authenticate, login
 from django.http import JsonResponse
 from django.db.utils import IntegrityError
+from django.shortcuts import render
 from django.views.decorators.http import require_GET, require_POST
 from marshmallow.exceptions import ValidationError
 
@@ -201,3 +202,8 @@ def get_workbench_users(request, workbench_id):
         return HttpResponse(users)
     except ValidationError as e:
         return HttpResponse(e, status=400)
+
+
+def index(request):
+    request.META["CSRF_COOKIE_USED"] = True
+    return render(request, 'index.html')

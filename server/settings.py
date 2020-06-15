@@ -25,7 +25,7 @@ SECRET_KEY = 'u18cn1eq76$krf#uua%5!c*ld1u&9z8dxx7#@%0c#lew*90b1a'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['52.81.18.241']
+ALLOWED_HOSTS = ['54.223.213.169', 'localhost']
 
 
 # Application definition
@@ -54,7 +54,7 @@ ROOT_URLCONF = 'server.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'frontend')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -119,5 +119,8 @@ USE_TZ = False
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
 
 STATIC_URL = '/static/'
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, "frontend/static/"),
+]
 
 AUTH_USER_MODEL = 'workshop.User'
