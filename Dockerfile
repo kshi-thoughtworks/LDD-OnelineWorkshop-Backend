@@ -8,4 +8,4 @@ RUN rm -rf /usr/src/app
 COPY . /usr/src/app
 RUN date '+%F %H:%M:%S' > /usr/src/app/version
 RUN chmod +x ./start.sh
-CMD [ "./start.sh"]
+CMD [ "python", "./manage.py", "runserver", "0.0.0.0:8088"]
