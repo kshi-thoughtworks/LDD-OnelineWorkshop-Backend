@@ -6,7 +6,7 @@ from django.db.utils import IntegrityError
 from django.views.decorators.http import require_GET, require_POST
 from marshmallow.exceptions import ValidationError
 
-from .models import User, UserWorkbench, Workbench, Workshop, Step
+from .models import User, UserWorkbench, Workbench, Step
 from .schemas import CreateUser, LoginUser, CreateWorkbench, AddUsers, UpdateWorkbench
 from .decorators import login_required_401, http_method
 
@@ -133,7 +133,6 @@ def create_workbench(request):
     try:
         create_workbench = CreateWorkbench.Schema().loads(request.body)
         workbench = Workbench(name=create_workbench.name, description=create_workbench.description,
-                              workshop=Workshop.objects.get(id=create_workbench.workshop_id),
                               created_by=User.objects.get(id=request.user.id))
         workbench.save()
         return HttpResponse()

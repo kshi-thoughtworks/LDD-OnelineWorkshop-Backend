@@ -14,20 +14,9 @@ class User(AbstractUser):
         return self.username
 
 
-class Workshop(models.Model):
-    name = models.CharField(max_length=100)
-    description = models.CharField(max_length=200, null=True)
-    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return self.name
-
-
 class Workbench(models.Model):
     name = models.CharField(max_length=100)
     description = models.CharField(max_length=200, null=True)
-    workshop = models.ForeignKey(Workshop, on_delete=models.SET_NULL, null=True)
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -67,7 +56,7 @@ class Step(models.Model):
         return self.name
 
 
-class Sticker(models.Model):
+class Element(models.Model):
     type = models.CharField(max_length=20)
     content = models.CharField(max_length=1024)
     step = models.ForeignKey(Step, on_delete=models.SET_NULL, null=True)

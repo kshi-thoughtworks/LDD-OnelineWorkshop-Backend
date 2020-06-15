@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-from .models import User, Workshop, Workbench, UserWorkbench, Card, Step, Sticker
+from .models import User, Workbench, UserWorkbench, Card, Step, Element
 
 
 class UserCreationForm(forms.ModelForm):
@@ -60,9 +60,8 @@ class StickerAdmin(admin.ModelAdmin):
 
 
 admin.site.register(User, UserAdmin)
-admin.site.register(Workshop, WorkshopAdmin)
 admin.site.register(Workbench, WorkbenchAdmin)
 admin.site.register(UserWorkbench)
 admin.site.register(Card, CardAdmin)
 admin.site.register(Step, StepAdmin)
-admin.site.register(Sticker, StickerAdmin)
+admin.site.register(Element, StickerAdmin)
