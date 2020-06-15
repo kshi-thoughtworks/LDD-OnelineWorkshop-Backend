@@ -1,11 +1,13 @@
+from django.core import serializers
 from django.http import HttpResponse
 from django.contrib.auth import authenticate, login
 from django.http import JsonResponse
 from django.db.utils import IntegrityError
+from django.views.decorators.http import require_GET, require_POST
 from marshmallow.exceptions import ValidationError
 
-from .models import User, UserWorkbench, Workbench, Workshop
-from .schemas import CreateUser, LoginUser, CreateWorkbench, AddUsers
+from .models import User, UserWorkbench, Workbench, Workshop, Step
+from .schemas import CreateUser, LoginUser, CreateWorkbench, AddUsers, UpdateWorkbench
 from .decorators import login_required_401, http_method
 
 UNIQUE_ERROR_PREFIX = "UNIQUE constraint failed"
@@ -60,6 +62,7 @@ def list_users(request):
             'username': user.username,
             'email': user.email
         }
+
     users_data = list(map(get_user_data, users))
     return JsonResponse(users_data, safe=False)
 
@@ -75,13 +78,14 @@ def users_in_workbench(request, workbench_id: int):
     :return:
     """
     if request.method == 'GET':
-        user_workbenches = UserWorkbench.objects.filter(workbench=workbench_id)
+        user_workbenches = UserWorkbench.objects.filter(workbench=workbench_id).order_by('created_at')
 
         def get_user_data(user_workbench: UserWorkbench):
             return {
                 'username': user_workbench.user.username,
                 'email': user_workbench.user.email
             }
+
         users_data = list(map(get_user_data, user_workbenches))
         return JsonResponse(users_data, safe=False)
 
@@ -96,12 +100,14 @@ def users_in_workbench(request, workbench_id: int):
                     user_workbench.save()
                 except IntegrityError as e:
                     if str.startswith(str(e), UNIQUE_ERROR_PREFIX):
-                        return HttpResponse(f'user_id {user_id} already exists in workbench_id {workbench_id}', status=400)
+                        return HttpResponse(f'user_id {user_id} already exists in workbench_id {workbench_id}',
+                                            status=400)
         except Exception as e:
             return HttpResponse(e, status=422)
         return HttpResponse()
 
 
+@require_GET
 @login_required_401
 def list_workbenches_by_user(request):
     current_user = request.user
@@ -115,13 +121,14 @@ def list_workbenches_by_user(request):
             "description": workbench.description,
             "created_at": workbench.created_at.strftime("%Y-%m-%d")
         }
+
     workbenches = list(map(get_workbench, user_workbenches))
 
     return JsonResponse(workbenches, safe=False)
 
 
+@require_POST
 @login_required_401
-@http_method('POST')
 def create_workbench(request):
     try:
         create_workbench = CreateWorkbench.Schema().loads(request.body)
@@ -137,22 +144,45 @@ def create_workbench(request):
 
 
 @login_required_401
-@http_method(['GET'])
-def get_workbench_by_id(request, workbench_id):
+def workbench_ops(request, workbench_id):
+    '''
+    GET: get workbench by id
+    POST: update workbench by id
+    :param request:
+    :param workbench_id:
+    :return:
+    '''
     try:
-        workbench = Workbench.objects.get(id=workbench_id)
-        data = {
-            'name': workbench.name,
-            'description': workbench.description,
-            'workshop_id': workbench.workshop.id,
-            'created_by': workbench.created_by.username,
-            'created_at': workbench.created_at
-        }
-        return JsonResponse(data)
+        if request.method == 'GET':
+            workbench = Workbench.objects.get(id=workbench_id)
+            steps = Step.objects.filter(workbench_id=workbench_id).order_by('order')
+            steps = serializers.serialize('json', steps)
+            data = {
+                'name': workbench.name,
+                'description': workbench.description,
+                'workshop_id': workbench.workshop.id,
+                'created_by': workbench.created_by.username,
+                'created_at': workbench.created_at,
+                'steps': steps
+            }
+            return JsonResponse(data)
+        if request.method == 'POST':
+            user = request.user
+            updateWorkbench = UpdateWorkbench.Schema().loads(request.body)
+            workbench = Workbench.objects.get(pk=workbench_id)
+            if workbench.created_by.id != user.id:
+                return HttpResponse('you don\'t onw this workbench', status=403)
+            if updateWorkbench.name.strip(' ') is not None:
+                workbench.name = updateWorkbench.name.strip(' ')
+            if updateWorkbench.description.strip(' ') is not None:
+                workbench.description = updateWorkbench.name.strip(' ')
+            workbench.save()
+            return HttpResponse()
     except ValidationError as e:
         return HttpResponse(e, status=400)
 
 
+@require_GET
 @login_required_401
 def get_workbench_users(request, workbench_id):
     try:
