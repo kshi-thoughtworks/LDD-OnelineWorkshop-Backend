@@ -38,6 +38,7 @@ class Workbench(models.Model):
 class UserWorkbench(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     workbench = models.ForeignKey(Workbench, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f'{self.workbench.name} : {self.user.username}'

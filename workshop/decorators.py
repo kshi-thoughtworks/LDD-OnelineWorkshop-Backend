@@ -4,7 +4,6 @@ from django.http import HttpResponse
 def login_required_401(function=None):
     def _decorator(view_func):
         def _wrapped_view(request, *args, **kwargs):
-            return view_func(request, *args, **kwargs)
             if request.user.is_authenticated:
                 return view_func(request, *args, **kwargs)
             else:
