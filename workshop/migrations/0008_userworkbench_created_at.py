@@ -7,7 +7,7 @@ import django.utils.timezone
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('workshop', '0006_workbench_created_at'),
+        ('workshop', '0007_userworkbench_unique_assign'),
     ]
 
     operations = [
