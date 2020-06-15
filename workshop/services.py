@@ -1,28 +1,22 @@
 from django.http import HttpResponse
-from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import authenticate, login
 from django.http import JsonResponse
 from django.db.utils import IntegrityError
 from marshmallow.exceptions import ValidationError
 
 from .models import User, UserWorkbench, Workbench, Workshop
-from .schemas import CreateUser, LoginUser, CreateWorkbench
+from .schemas import CreateUser, LoginUser, CreateWorkbench, AddUsers
 from .decorators import login_required_401, http_method
 
-
-@login_required_401
-def list_users(request):
-    users = User.objects.all()
-    return HttpResponse(users, content_type="text/plain")
+UNIQUE_ERROR_PREFIX = "UNIQUE constraint failed"
 
 
-@csrf_exempt
 def register_user(request):
     try:
         user = CreateUser.Schema().loads(request.body)
         User.objects.create_user(username=user.username, email=user.email, password=user.password)
     except IntegrityError as e:
-        if str.startswith(str(e), "UNIQUE constraint failed"):
+        if str.startswith(str(e), UNIQUE_ERROR_PREFIX):
             field = str(e).split(".")[1]
             return HttpResponse(f'{field} already exists', status=400)
     except Exception as e:
@@ -30,7 +24,6 @@ def register_user(request):
     return HttpResponse()
 
 
-@csrf_exempt
 def login_user(request):
     try:
         user_data = LoginUser.Schema().loads(request.body)
@@ -59,7 +52,58 @@ def login_user(request):
 
 
 @login_required_401
-def get_workbenches_by_user(request):
+def list_users(request):
+    users = User.objects.all()
+
+    def get_user_data(user: User):
+        return {
+            'username': user.username,
+            'email': user.email
+        }
+    users_data = list(map(get_user_data, users))
+    return JsonResponse(users_data, safe=False)
+
+
+@login_required_401
+@http_method(['GET', 'POST'])
+def users_in_workbench(request, workbench_id: int):
+    """
+    GET: List all users in workbench
+    PUT: Add users to workbench
+    :param request:
+    :param workbench_id:
+    :return:
+    """
+    if request.method == 'GET':
+        user_workbenches = UserWorkbench.objects.filter(workbench=workbench_id)
+
+        def get_user_data(user_workbench: UserWorkbench):
+            return {
+                'username': user_workbench.user.username,
+                'email': user_workbench.user.email
+            }
+        users_data = list(map(get_user_data, user_workbenches))
+        return JsonResponse(users_data, safe=False)
+
+    elif request.method == 'POST':
+        try:
+            user_ids = AddUsers.Schema().loads(request.body).user_ids
+            workbench = Workbench.objects.get(id=workbench_id)
+            for user_id in user_ids:
+                try:
+                    user = User.objects.get(id=user_id)
+                    user_workbench = UserWorkbench(user=user, workbench=workbench)
+                    user_workbench.save()
+                except IntegrityError as e:
+                    if str.startswith(str(e), UNIQUE_ERROR_PREFIX):
+                        return HttpResponse(f'user_id {user_id} already exists in workbench_id {workbench_id}', status=400)
+        except Exception as e:
+            return HttpResponse(e, status=422)
+        return HttpResponse()
+
+
+@login_required_401
+def list_workbenches_by_user(request):
     current_user = request.user
     user_workbenches = UserWorkbench.objects.filter(user_id=current_user.id)
 
@@ -69,15 +113,13 @@ def get_workbenches_by_user(request):
             "id": workbench.id,
             "name": workbench.name,
             "description": workbench.description,
-            "created_at": workbench.created_at
+            "created_at": workbench.created_at.strftime("%Y-%m-%d")
         }
+    workbenches = list(map(get_workbench, user_workbenches))
 
-    workbenches = map(get_workbench, user_workbenches)
-
-    return HttpResponse(workbenches)
+    return JsonResponse(workbenches, safe=False)
 
 
-@csrf_exempt
 @login_required_401
 @http_method('POST')
 def create_workbench(request):
@@ -95,7 +137,7 @@ def create_workbench(request):
 
 
 @login_required_401
-@http_method('GET')
+@http_method(['GET'])
 def get_workbench_by_id(request, workbench_id):
     try:
         workbench = Workbench.objects.get(id=workbench_id)

@@ -40,6 +40,11 @@ class UserWorkbench(models.Model):
     workbench = models.ForeignKey(Workbench, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['user', 'workbench'], name='unique_assign')
+        ]
+
     def __str__(self):
         return f'{self.workbench.name} : {self.user.username}'
 
