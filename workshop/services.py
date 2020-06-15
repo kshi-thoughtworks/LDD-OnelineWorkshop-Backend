@@ -135,6 +135,11 @@ def create_workbench(request):
         workbench = Workbench(name=create_workbench.name, description=create_workbench.description,
                               created_by=User.objects.get(id=request.user.id))
         workbench.save()
+        default_steps = {'数据全景图': 10, '技术卡': 20, '发散场景': 30, '收敛场景': 40, '生成报告': 50}
+        for key, value in default_steps.items():
+            step = Step(name=key, order=value, workbench=workbench)
+            step.save()
+
         return HttpResponse()
     except ValidationError as e:
         return HttpResponse(e, status=400)
@@ -159,7 +164,6 @@ def workbench_ops(request, workbench_id):
             data = {
                 'name': workbench.name,
                 'description': workbench.description,
-                'workshop_id': workbench.workshop.id,
                 'created_by': workbench.created_by.username,
                 'created_at': workbench.created_at,
                 'steps': steps
