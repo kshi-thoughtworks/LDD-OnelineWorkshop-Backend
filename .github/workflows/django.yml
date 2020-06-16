@@ -42,6 +42,7 @@ jobs:
           sudo npm run build:prod
           cd ../LDD-OnelineWorkshop-Backend
           git pull
+          mkdir frontend/static
           cp ../LDD-OnelineWorkshop-Front/dist/* ./frontend/static
           sh deploy/build_image.sh
           sudo docker-compose -f deploy/docker-compose.yml down
