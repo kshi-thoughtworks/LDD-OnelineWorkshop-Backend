@@ -44,6 +44,7 @@ class Card(models.Model):
     name = models.CharField(max_length=100)
     type = models.CharField(max_length=20)
     description = models.CharField(max_length=1024)
+    order = models.IntegerField(default=0)
 
     def __str__(self):
         return self.name

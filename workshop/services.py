@@ -1,3 +1,5 @@
+import json
+
 from django.core import serializers
 from django.http import HttpResponse
 from django.contrib.auth import authenticate, login
@@ -7,6 +9,7 @@ from django.shortcuts import render
 from django.views.decorators.http import require_GET, require_http_methods
 from marshmallow.exceptions import ValidationError
 
+from .enums import Card_type
 from .models import User, UserWorkbench, Workbench, Step, Element, Card
 from .schemas import CreateUser, LoginUser, CreateWorkbench, AddUsers, UpdateWorkbench, CreateElement, UpdateElement
 from .decorators import login_required_401, http_method
@@ -231,7 +234,7 @@ def create_element(request):
 
 @login_required_401
 @require_http_methods(['GET', 'POST'])
-def element_ops(request,element_id):
+def element_ops(request, element_id):
     try:
         element = Element.objects.get(pk=element_id)
         if request.method == 'GET':
@@ -239,7 +242,7 @@ def element_ops(request,element_id):
                 'type': element.type,
                 'content': element.content,
                 'step_id': element.step.id,
-                'card': 'card', #todo
+                'card': element.card,
                 'matrix': element.matrix,
                 'created_by': element.created_by.id})
         if request.method == 'POST':
@@ -253,23 +256,62 @@ def element_ops(request,element_id):
     except ValidationError as e:
         return HttpResponse(e, status=400)
 
+
 @login_required_401
 @require_http_methods(['GET'])
 def list_elements_by_step(request, step_id):
     elements = Element.objects.filter(step_id=step_id)
 
+    def get_card(card: Card):
+        if card is not None:
+            return {
+                "id": card.id,
+                "name": card.name,
+                "type": card.type,
+                "description": card.description,
+                "order": card.order
+            }
+        else:
+            return None
+
     def get_element_data(element: Element):
-        return {
+        data = {
             'type': element.type,
             'content': element.content,
             'step_id': element.step.id,
-            'card': 'card', #todo
             'matrix': element.matrix,
-            'created_by': element.user.id
+            'created_by': element.created_by.id
+        }
+        if element.card is not None:
+            data['card'] = get_card(element.card)
+        return data
+
+    elements_data = list(map(get_element_data, elements))
+    return JsonResponse({"elements": elements_data})
+
+
+@login_required_401
+@require_http_methods(['GET'])
+def get_card_types(request):
+    cards = [Card_type.DATA, Card_type.TECHNIQUE, Card_type.VALUE, Card_type.VISION]
+    return JsonResponse({"card_types": cards})
+
+
+@login_required_401
+@require_http_methods(['GET'])
+def get_cards(request, card_tpye):
+    cards = Card.objects.filter(type=card_tpye).order_by('order')
+
+    def get_card(card: Card):
+        return {
+            "id": card.id,
+            "name": card.name,
+            "type": card.type,
+            "description": card.description,
+            "order": card.order
         }
 
-    elements_data = list(map(get_element_data,elements))
-    return HttpResponse(elements_data)
+    return JsonResponse({"cards": list(map(get_card, cards))})
 
 
 def index(request):
