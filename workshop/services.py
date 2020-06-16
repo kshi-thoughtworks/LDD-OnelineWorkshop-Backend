@@ -4,11 +4,11 @@ from django.contrib.auth import authenticate, login
 from django.http import JsonResponse
 from django.db.utils import IntegrityError
 from django.shortcuts import render
-from django.views.decorators.http import require_GET, require_POST
+from django.views.decorators.http import require_GET, require_http_methods
 from marshmallow.exceptions import ValidationError
 
-from .models import User, UserWorkbench, Workbench, Step
-from .schemas import CreateUser, LoginUser, CreateWorkbench, AddUsers, UpdateWorkbench
+from .models import User, UserWorkbench, Workbench, Step, Element, Card
+from .schemas import CreateUser, LoginUser, CreateWorkbench, AddUsers, UpdateWorkbench, CreateElement, UpdateElement
 from .decorators import login_required_401, http_method
 
 UNIQUE_ERROR_PREFIX = "UNIQUE constraint failed"
@@ -55,6 +55,7 @@ def login_user(request):
 
 
 @login_required_401
+@require_http_methods(['GET'])
 def list_users(request):
     users = User.objects.all()
 
@@ -69,7 +70,7 @@ def list_users(request):
 
 
 @login_required_401
-@http_method(['GET', 'POST'])
+@require_http_methods(['GET', 'POST'])
 def users_in_workbench(request, workbench_id: int):
     """
     GET: List all users in workbench
@@ -108,8 +109,8 @@ def users_in_workbench(request, workbench_id: int):
         return HttpResponse()
 
 
-@require_GET
 @login_required_401
+@require_http_methods(['GET'])
 def list_workbenches_by_user(request):
     current_user = request.user
     user_workbenches = UserWorkbench.objects.filter(user_id=current_user.id)
@@ -128,8 +129,8 @@ def list_workbenches_by_user(request):
     return JsonResponse(workbenches, safe=False)
 
 
-@require_POST
 @login_required_401
+@require_http_methods(['PUT'])
 def create_workbench(request):
     try:
         create_workbench = CreateWorkbench.Schema().loads(request.body)
@@ -149,6 +150,7 @@ def create_workbench(request):
 
 
 @login_required_401
+@require_http_methods(['GET', 'POST'])
 def workbench_ops(request, workbench_id):
     '''
     GET: get workbench by id
@@ -186,25 +188,88 @@ def workbench_ops(request, workbench_id):
         return HttpResponse(e, status=400)
 
 
-@require_GET
+# @require_GET
+# @login_required_401
+# def get_workbench_users(request, workbench_id):
+#     try:
+#         user_workbenches = UserWorkbench.objects.filter(workbench_id=workbench_id).order_by('created_at')
+#
+#         def get_user(user_workbench: UserWorkbench):
+#             user = user_workbench.user
+#             return {
+#                 "id": user.id,
+#                 "username": user.username,
+#                 "description": user.email,
+#                 "created_at": user_workbench.created_at
+#             }
+#
+#         users = map(get_user, user_workbenches)
+#         return HttpResponse(users)
+#     except ValidationError as e:
+#         return HttpResponse(e, status=400)
+
+
 @login_required_401
-def get_workbench_users(request, workbench_id):
+@require_http_methods(['PUT'])
+def create_element(request):
     try:
-        user_workbenches = UserWorkbench.objects.filter(workbench_id=workbench_id).order_by('created_at')
-
-        def get_user(user_workbench: UserWorkbench):
-            user = user_workbench.user
-            return {
-                "id": user.id,
-                "username": user.username,
-                "description": user.email,
-                "created_at": user_workbench.created_at
-            }
-
-        users = map(get_user, user_workbenches)
-        return HttpResponse(users)
+        createElement = CreateElement.Schema().loads(request.body)
+        element = Element(type=createElement.type,
+                          content=createElement.content,
+                          step=Step.objects.get(pk=createElement.step_id),
+                          created_by=request.user,
+                          matrix=createElement.matrix)
+        if createElement.card_id != None:
+            element.card = Card.objects.get(pk=createElement.card_id)
+        element.save()
+        return HttpResponse()
     except ValidationError as e:
         return HttpResponse(e, status=400)
+    except Exception as e:
+        return HttpResponse(e, status=500)
+
+
+@login_required_401
+@require_http_methods(['GET', 'POST'])
+def element_ops(request,element_id):
+    try:
+        element = Element.objects.get(pk=element_id)
+        if request.method == 'GET':
+            return JsonResponse({
+                'type': element.type,
+                'content': element.content,
+                'step_id': element.step.id,
+                'card': 'card', #todo
+                'matrix': element.matrix,
+                'created_by': element.created_by.id})
+        if request.method == 'POST':
+            update_element = UpdateElement.Schema().loads(request.body)
+            if update_element.content.strip(' ') is not None:
+                element.content = update_element.content.strip(' ')
+            if update_element.matrix is not None:
+                element.matrix = update_element.matrix
+            element.save()
+            return HttpResponse()
+    except ValidationError as e:
+        return HttpResponse(e, status=400)
+
+@login_required_401
+@require_http_methods(['GET'])
+def list_elements_by_step(request, step_id):
+    elements = Element.objects.filter(step_id=step_id)
+
+    def get_element_data(element: Element):
+        return {
+            'type': element.type,
+            'content': element.content,
+            'step_id': element.step.id,
+            'card': 'card', #todo
+            'matrix': element.matrix,
+            'created_by': element.user.id
+        }
+
+    elements_data = list(map(get_element_data,elements))
+    return HttpResponse(elements_data)
 
 
 def index(request):

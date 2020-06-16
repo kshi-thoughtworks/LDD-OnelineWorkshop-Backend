@@ -1,9 +1,11 @@
-from dataclasses import field
+from dataclasses import field, MISSING
 from typing import List
 
 from marshmallow_dataclass import dataclass
 
 import marshmallow.validate
+
+from workshop.enums import Element_type
 
 
 @dataclass
@@ -29,6 +31,22 @@ class CreateWorkbench:
 class UpdateWorkbench:
     name: str = field(metadata={"validate": marshmallow.validate.Length(min=1, max=20)})
     description: str = field(metadata={"validate": marshmallow.validate.Length(min=0, max=200)})
+
+
+@dataclass
+class CreateElement:
+    type: str = field(init=False,default=Element_type.STICKY)
+    content: str = field(metadata={"validate": marshmallow.validate.Length(min=0, max=1024)})
+    step_id: int = field()
+    card_id: int = field(default=None)
+    # save properties, like: rotate, scale, color, length
+    matrix: dict = field(default=None)
+
+
+@dataclass
+class UpdateElement:
+    content: str = field(metadata={"validate": marshmallow.validate.Length(min=0, max=1024)})
+    matrix: dict = field(default=None)
 
 
 @dataclass

@@ -1,6 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 
+from workshop.enums import Element_type
+
 
 class User(AbstractUser):
     email = models.CharField(unique=True, max_length=100, verbose_name='email address')
@@ -57,11 +59,15 @@ class Step(models.Model):
 
 
 class Element(models.Model):
-    type = models.CharField(max_length=20)
+    type = models.CharField(max_length=20,default=Element_type.STICKY)
     content = models.CharField(max_length=1024)
     step = models.ForeignKey(Step, on_delete=models.SET_NULL, null=True)
     card = models.ForeignKey(Card, on_delete=models.SET_NULL, null=True)
+    # save properties, like: rotate, scale, color, length
+    matrix = models.CharField(max_length=1024, null=True)
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+
+
 
     def __str__(self):
         return self.content
