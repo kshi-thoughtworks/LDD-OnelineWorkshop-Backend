@@ -36,10 +36,11 @@ jobs:
         key: ${{ secrets.DEPLOY_KEY }}
         script: |
           cd LDD-OnelineWorkshop-Front
+          git reset --hard
           git pull
           sudo npm install
           sudo npm run build:prod
-          cd LDD-OnelineWorkshop-Backend
+          cd ../LDD-OnelineWorkshop-Backend
           git pull
           cp ../LDD-OnelineWorkshop-Front/dist/* ./frontend/static
           sh deploy/build_image.sh
