@@ -19,7 +19,8 @@ from django.urls import include, path
 import version
 
 urlpatterns = [
-    path('workshop/', include('workshop.urls')),
+    path('api/', include('workshop.urls')),
+    path('workshop/', include('page.urls')),
     path('admin/', admin.site.urls),
     path('version', version.get_version, name='version'),
 ]
