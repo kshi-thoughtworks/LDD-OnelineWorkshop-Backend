@@ -205,8 +205,3 @@ def get_workbench_users(request, workbench_id):
         return HttpResponse(users)
     except ValidationError as e:
         return HttpResponse(e, status=400)
-
-
-def index(request):
-    request.META["CSRF_COOKIE_USED"] = True
-    return render(request, 'index.html')
