@@ -41,6 +41,7 @@ jobs:
           sudo npm install
           sudo npm run build:prod
           cd ../LDD-OnelineWorkshop-Backend
+          git reset --hard
           git pull
           mkdir frontend/static
           cp ../LDD-OnelineWorkshop-Front/dist/* ./frontend/static
