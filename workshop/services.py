@@ -1,4 +1,5 @@
 import json
+import logging
 
 from django.core import serializers
 from django.http import HttpResponse
@@ -15,6 +16,8 @@ from .schemas import CreateUser, LoginUser, CreateWorkbench, AddUsers, UpdateWor
 from .decorators import login_required_401, http_method
 
 UNIQUE_ERROR_PREFIX = "UNIQUE constraint failed"
+
+logger = logging.getLogger(__name__)
 
 
 def register_user(request):
@@ -113,8 +116,9 @@ def users_in_workbench(request, workbench_id: int):
 
 
 @login_required_401
-@require_http_methods(['GET','POST'])
+@require_http_methods(['GET', 'POST'])
 def workbenches_ops(request):
+    # get user's workbenches
     if request.method == 'GET':
         current_user = request.user
         user_workbenches = UserWorkbench.objects.filter(user_id=current_user.id)
@@ -131,17 +135,23 @@ def workbenches_ops(request):
         workbenches = list(map(get_workbench, user_workbenches))
 
         return JsonResponse(workbenches, safe=False)
+    # add workbench
     if request.method == 'POST':
         try:
             create_workbench = CreateWorkbench.Schema().loads(request.body)
             workbench = Workbench(name=create_workbench.name, description=create_workbench.description,
                                   created_by=User.objects.get(id=request.user.id))
             workbench.save()
+
+            # add default step
             default_steps = {'数据全景图': 10, '技术卡': 20, '发散场景': 30, '收敛场景': 40, '生成报告': 50}
             for key, value in default_steps.items():
                 step = Step(name=key, order=value, workbench=workbench)
                 step.save()
 
+            # default add self in this workbench
+            userWorkbench = UserWorkbench(user=request.user, workbench=workbench)
+            userWorkbench.save()
             return HttpResponse()
         except ValidationError as e:
             return HttpResponse(e, status=400)
@@ -163,15 +173,22 @@ def workbenches_ops_by_id(request, workbench_id):
         if request.method == 'GET':
             workbench = Workbench.objects.get(id=workbench_id)
             steps = Step.objects.filter(workbench_id=workbench_id).order_by('order')
-            steps = serializers.serialize('json', steps)
+
+            # steps = serializers.serialize('json', steps)
+            def get_step(step: Step):
+                return {
+                    "name": step.name,
+                    "order": step.order
+                }
+
             data = {
                 'name': workbench.name,
                 'description': workbench.description,
                 'created_by': workbench.created_by.username,
                 'created_at': workbench.created_at,
-                'steps': steps
+                'steps': list(map(get_step, steps))
             }
-            return JsonResponse(data)
+            return JsonResponse(data, safe=False)
         if request.method == 'PUT':
             user = request.user
             updateWorkbench = UpdateWorkbench.Schema().loads(request.body)
@@ -186,7 +203,6 @@ def workbenches_ops_by_id(request, workbench_id):
             return HttpResponse()
     except ValidationError as e:
         return HttpResponse(e, status=400)
-
 
 
 @login_required_401
@@ -264,14 +280,14 @@ def list_elements_by_step(request, step_id):
         return data
 
     elements_data = list(map(get_element_data, elements))
-    return JsonResponse({"elements": elements_data})
+    return JsonResponse(elements_data, safe=False)
 
 
 @login_required_401
 @require_http_methods(['GET'])
 def get_card_types(request):
-    cards = [Card_type.DATA, Card_type.SCENE, Card_type.VALUE, Card_type.VISION,Card_type.TOOL]
-    return JsonResponse({"card_types": cards})
+    cards = [Card_type.DATA, Card_type.SCENE, Card_type.VALUE, Card_type.VISION, Card_type.TOOL]
+    return JsonResponse(cards, safe=False)
 
 
 @login_required_401
@@ -284,12 +300,12 @@ def get_cards_by_type(request, card_tpye):
             "id": card.id,
             "name": card.name,
             "type": card.type,
-            "sub_type":card.sup_type,
+            "sub_type": card.sup_type,
             "description": card.description,
             "order": card.order
         }
 
-    return JsonResponse({"cards": list(map(get_card, cards))})
+    return JsonResponse(list(map(get_card, cards)), safe=False)
 
 
 def index(request):
