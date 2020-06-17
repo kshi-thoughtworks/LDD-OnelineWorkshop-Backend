@@ -113,51 +113,48 @@ def users_in_workbench(request, workbench_id: int):
 
 
 @login_required_401
-@require_http_methods(['GET'])
-def list_workbenches_by_user(request):
-    current_user = request.user
-    user_workbenches = UserWorkbench.objects.filter(user_id=current_user.id)
+@require_http_methods(['GET','POST'])
+def workbenches_ops(request):
+    if request.method == 'GET':
+        current_user = request.user
+        user_workbenches = UserWorkbench.objects.filter(user_id=current_user.id)
 
-    def get_workbench(user_workbench: UserWorkbench):
-        workbench = user_workbench.workbench
-        return {
-            "id": workbench.id,
-            "name": workbench.name,
-            "description": workbench.description,
-            "created_at": workbench.created_at.strftime("%Y-%m-%d")
-        }
+        def get_workbench(user_workbench: UserWorkbench):
+            workbench = user_workbench.workbench
+            return {
+                "id": workbench.id,
+                "name": workbench.name,
+                "description": workbench.description,
+                "created_at": workbench.created_at.strftime("%Y-%m-%d")
+            }
 
-    workbenches = list(map(get_workbench, user_workbenches))
+        workbenches = list(map(get_workbench, user_workbenches))
 
-    return JsonResponse(workbenches, safe=False)
+        return JsonResponse(workbenches, safe=False)
+    if request.method == 'POST':
+        try:
+            create_workbench = CreateWorkbench.Schema().loads(request.body)
+            workbench = Workbench(name=create_workbench.name, description=create_workbench.description,
+                                  created_by=User.objects.get(id=request.user.id))
+            workbench.save()
+            default_steps = {'数据全景图': 10, '技术卡': 20, '发散场景': 30, '收敛场景': 40, '生成报告': 50}
+            for key, value in default_steps.items():
+                step = Step(name=key, order=value, workbench=workbench)
+                step.save()
 
-
-@login_required_401
-@require_http_methods(['PUT'])
-def create_workbench(request):
-    try:
-        create_workbench = CreateWorkbench.Schema().loads(request.body)
-        workbench = Workbench(name=create_workbench.name, description=create_workbench.description,
-                              created_by=User.objects.get(id=request.user.id))
-        workbench.save()
-        default_steps = {'数据全景图': 10, '技术卡': 20, '发散场景': 30, '收敛场景': 40, '生成报告': 50}
-        for key, value in default_steps.items():
-            step = Step(name=key, order=value, workbench=workbench)
-            step.save()
-
-        return HttpResponse()
-    except ValidationError as e:
-        return HttpResponse(e, status=400)
-    except Exception as e:
-        return HttpResponse(e, status=500)
+            return HttpResponse()
+        except ValidationError as e:
+            return HttpResponse(e, status=400)
+        except Exception as e:
+            return HttpResponse(e, status=500)
 
 
 @login_required_401
-@require_http_methods(['GET', 'POST'])
-def workbench_ops(request, workbench_id):
+@require_http_methods(['GET', 'PUT'])
+def workbenches_ops_by_id(request, workbench_id):
     '''
     GET: get workbench by id
-    POST: update workbench by id
+    PUT: update workbench by id
     :param request:
     :param workbench_id:
     :return:
@@ -175,7 +172,7 @@ def workbench_ops(request, workbench_id):
                 'steps': steps
             }
             return JsonResponse(data)
-        if request.method == 'POST':
+        if request.method == 'PUT':
             user = request.user
             updateWorkbench = UpdateWorkbench.Schema().loads(request.body)
             workbench = Workbench.objects.get(pk=workbench_id)
@@ -191,30 +188,10 @@ def workbench_ops(request, workbench_id):
         return HttpResponse(e, status=400)
 
 
-# @require_GET
-# @login_required_401
-# def get_workbench_users(request, workbench_id):
-#     try:
-#         user_workbenches = UserWorkbench.objects.filter(workbench_id=workbench_id).order_by('created_at')
-#
-#         def get_user(user_workbench: UserWorkbench):
-#             user = user_workbench.user
-#             return {
-#                 "id": user.id,
-#                 "username": user.username,
-#                 "description": user.email,
-#                 "created_at": user_workbench.created_at
-#             }
-#
-#         users = map(get_user, user_workbenches)
-#         return HttpResponse(users)
-#     except ValidationError as e:
-#         return HttpResponse(e, status=400)
-
 
 @login_required_401
 @require_http_methods(['PUT'])
-def create_element(request):
+def elements_ops(request):
     try:
         createElement = CreateElement.Schema().loads(request.body)
         element = Element(type=createElement.type,
@@ -234,7 +211,7 @@ def create_element(request):
 
 @login_required_401
 @require_http_methods(['GET', 'POST'])
-def element_ops(request, element_id):
+def elements_ops_by_id(request, element_id):
     try:
         element = Element.objects.get(pk=element_id)
         if request.method == 'GET':
@@ -293,20 +270,21 @@ def list_elements_by_step(request, step_id):
 @login_required_401
 @require_http_methods(['GET'])
 def get_card_types(request):
-    cards = [Card_type.DATA, Card_type.TECHNIQUE, Card_type.VALUE, Card_type.VISION]
+    cards = [Card_type.DATA, Card_type.SCENE, Card_type.VALUE, Card_type.VISION,Card_type.TOOL]
     return JsonResponse({"card_types": cards})
 
 
 @login_required_401
 @require_http_methods(['GET'])
-def get_cards(request, card_tpye):
-    cards = Card.objects.filter(type=card_tpye).order_by('order')
+def get_cards_by_type(request, card_tpye):
+    cards = Card.objects.filter(type=card_tpye).order_by('sup_type').order_by('order')
 
     def get_card(card: Card):
         return {
             "id": card.id,
             "name": card.name,
             "type": card.type,
+            "sub_type":card.sup_type,
             "description": card.description,
             "order": card.order
         }

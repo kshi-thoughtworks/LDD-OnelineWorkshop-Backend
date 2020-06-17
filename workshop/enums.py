@@ -6,11 +6,13 @@ class Element_type():
 
 
 class Card_type():
-    # 技术卡
-    TECHNIQUE = 'technique'
+    # 工具卡,有子类
+    TOOL = 'tool'
     # 愿景卡
     VISION = 'vision'
     # 数据卡
     DATA = 'data'
-    # 价值卡
+    # 业务价值痛点卡
     VALUE = 'value'
+    #场景卡
+    SCENE = 'scene'
