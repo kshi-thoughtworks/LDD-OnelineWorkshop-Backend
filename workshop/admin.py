@@ -5,7 +5,6 @@ from .models import User, Workbench, UserWorkbench, Card, Step, Element
 
 
 class UserCreationForm(forms.ModelForm):
-    wechat_id = forms.IntegerField(label='wechat id')
     type = forms.CharField(label='user type')
     organization = forms.CharField(label='user organization')
     phone = forms.IntegerField(label='user phone')
@@ -13,11 +12,10 @@ class UserCreationForm(forms.ModelForm):
 
     class Meta:
         model = User
-        fields = ('wechat_id', 'type')
+        fields = ('type',)
 
     def save(self, commit=True):
         user = super().save(commit=False)
-        user.wechat_id = self.wechat_id
         if commit:
             user.save()
         return user
@@ -28,13 +26,13 @@ class UserAdmin(BaseUserAdmin):
     list_display = ('username', 'type', 'organization', 'phone', 'position')
     fieldsets = (
         (None, {'fields': ('username', 'password')}),
-        ('Personal info', {'fields': ('wechat_id', 'type', 'organization', 'phone', 'position', 'is_staff')}),
+        ('Personal info', {'fields': ('type', 'organization', 'phone', 'position', 'is_staff')}),
         ('Permissions', {'fields': ('is_superuser',)}),
     )
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
-            'fields': ('username', 'password', 'wechat_id', 'type', 'organization', 'phone', 'position', 'is_staff'),
+            'fields': ('username', 'password', 'type', 'organization', 'phone', 'position', 'is_staff'),
         }),
     )
 
