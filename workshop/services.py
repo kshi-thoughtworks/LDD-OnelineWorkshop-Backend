@@ -215,7 +215,7 @@ def elements_ops(request):
                           content=createElement.content,
                           step=Step.objects.get(pk=createElement.step_id),
                           created_by=request.user,
-                          matrix=createElement.matrix)
+                          meta=createElement.meta)
         if createElement.card_id != None:
             element.card = Card.objects.get(pk=createElement.card_id)
         element.save()
@@ -243,8 +243,8 @@ def elements_ops_by_id(request, element_id):
             update_element = UpdateElement.Schema().loads(request.body)
             if update_element.content.strip(' ') is not None:
                 element.content = update_element.content.strip(' ')
-            if update_element.matrix is not None:
-                element.matrix = update_element.matrix
+            if update_element.meta is not None:
+                element.meta = update_element.meta
             element.save()
             return HttpResponse()
     except ValidationError as e:
