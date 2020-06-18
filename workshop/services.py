@@ -177,6 +177,7 @@ def workbenches_ops_by_id(request, workbench_id):
             # steps = serializers.serialize('json', steps)
             def get_step(step: Step):
                 return {
+                    "id": step.id,
                     "name": step.name,
                     "order": step.order
                 }
