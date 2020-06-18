@@ -286,6 +286,7 @@ def list_elements_by_step(request, step_id):
 @login_required_401
 @require_http_methods(['GET'])
 def get_card_types(request):
+    logger.info("get card types")
     cards = [Card_type.DATA, Card_type.SCENE, Card_type.VALUE, Card_type.VISION, Card_type.TOOL]
     return JsonResponse(cards, safe=False)
 
