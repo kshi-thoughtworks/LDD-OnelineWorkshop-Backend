@@ -340,6 +340,23 @@ def get_cards_by_type(request, card_tpye):
 
     return JsonResponse(list(map(get_card, cards)), safe=False)
 
+@login_required_401
+@require_http_methods(['GET'])
+def get_cards(request):
+    cards = Card.objects.order_by('sup_type').order_by('order')
+
+    def get_card(card: Card):
+        return {
+            "id": card.id,
+            "name": card.name,
+            "type": card.type,
+            "sub_type": card.sup_type,
+            "description": card.description,
+            "order": card.order
+        }
+
+    return JsonResponse(list(map(get_card, cards)), safe=False)
+
 
 def index(request):
     request.META["CSRF_COOKIE_USED"] = True
