@@ -343,7 +343,7 @@ def get_cards_by_type(request, card_tpye):
 @login_required_401
 @require_http_methods(['GET'])
 def get_cards(request):
-    cards = Card.objects.order_by('sup_type').order_by('order')
+    cards = Card.objects.all().order_by('sup_type').order_by('order')
 
     def get_card(card: Card):
         return {
