@@ -162,13 +162,13 @@ def workbenches_ops(request):
 @login_required_401
 @require_http_methods(['GET', 'PUT'])
 def workbenches_ops_by_id(request, workbench_id):
-    '''
+    """
     GET: get workbench by id
     PUT: update workbench by id
     :param request:
     :param workbench_id:
     :return:
-    '''
+    """
     try:
         if request.method == 'GET':
             workbench = Workbench.objects.get(id=workbench_id)
@@ -236,8 +236,8 @@ def elements_ops_by_id(request, element_id):
                 'type': element.type,
                 'content': element.content,
                 'step_id': element.step.id,
-                'card': element.card,
-                'matrix': element.matrix,
+                'card': element.card.name,
+                'meta': element.meta,
                 'created_by': element.created_by.id})
         if request.method == 'POST':
             update_element = UpdateElement.Schema().loads(request.body)
@@ -270,10 +270,11 @@ def list_elements_by_step(request, step_id):
 
     def get_element_data(element: Element):
         data = {
+            'id': element.id,
             'type': element.type,
             'content': element.content,
             'step_id': element.step.id,
-            'matrix': element.matrix,
+            'meta': element.meta,
             'created_by': element.created_by.id
         }
         if element.card is not None:

@@ -1,7 +1,23 @@
+import json
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 
 from workshop.enums import Element_type
+
+
+class JSONField(models.TextField):
+    description = "Json"
+
+    def to_python(self, value):
+        v = models.TextField.to_python(self, value)
+        try:
+            return json.loads(v)
+        except:
+            pass
+        return v
+
+    def get_prep_value(self, value):
+        return json.dumps(value)
 
 
 class User(AbstractUser):
@@ -66,11 +82,9 @@ class Element(models.Model):
     content = models.CharField(max_length=1024)
     step = models.ForeignKey(Step, on_delete=models.SET_NULL, null=True)
     card = models.ForeignKey(Card, on_delete=models.SET_NULL, null=True)
-    # save properties, like: rotate, scale, color, length
-    matrix = models.CharField(max_length=1024, null=True)
+    # save properties, such as: x, y, height, width, rotate, scale, color, length
+    meta = JSONField(max_length=1024, null=True)
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
-
-
 
     def __str__(self):
         return self.content
