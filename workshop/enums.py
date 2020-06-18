@@ -16,3 +16,11 @@ class Card_type():
     VALUE = 'value'
     #场景卡
     SCENE = 'scene'
+
+
+class StepTypes:
+    DATA_PANORAMA = 'dataPanorama'
+    TECHNOLOGY_CARD = 'technologyCard'
+    DIVERGENCE_SCENE = 'divergenceScene'
+    CONVERGENCE_SCENE = 'convergenceScene'
+    GENERATE_REPORT = 'generateReport'

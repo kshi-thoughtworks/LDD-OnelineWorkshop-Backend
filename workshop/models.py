@@ -72,6 +72,7 @@ class Step(models.Model):
     name = models.CharField(max_length=100)
     workbench = models.ForeignKey(Workbench, on_delete=models.CASCADE)
     order = models.IntegerField()
+    type = models.CharField(max_length=100)
 
     def __str__(self):
         return self.name

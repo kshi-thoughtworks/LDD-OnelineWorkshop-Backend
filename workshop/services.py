@@ -1,19 +1,17 @@
-import json
 import logging
 
-from django.core import serializers
 from django.http import HttpResponse
 from django.contrib.auth import authenticate, login
 from django.http import JsonResponse
 from django.db.utils import IntegrityError
 from django.shortcuts import render
-from django.views.decorators.http import require_GET, require_http_methods
+from django.views.decorators.http import require_http_methods
 from marshmallow.exceptions import ValidationError
 
-from .enums import Card_type
+from .enums import Card_type, StepTypes
 from .models import User, UserWorkbench, Workbench, Step, Element, Card
 from .schemas import CreateUser, LoginUser, CreateWorkbench, AddUsers, UpdateWorkbench, CreateElement, UpdateElement
-from .decorators import login_required_401, http_method
+from .decorators import login_required_401
 
 UNIQUE_ERROR_PREFIX = "UNIQUE constraint failed"
 
@@ -144,15 +142,43 @@ def workbenches_ops(request):
             workbench.save()
 
             # add default step
-            default_steps = {'数据全景图': 10, '技术卡': 20, '发散场景': 30, '收敛场景': 40, '生成报告': 50}
-            for key, value in default_steps.items():
-                step = Step(name=key, order=value, workbench=workbench)
+            default_steps = [
+                {
+                    'type': StepTypes.DATA_PANORAMA,
+                    'name': '数据全景图',
+                    'order': 10
+                },
+                {
+                    'type': StepTypes.TECHNOLOGY_CARD,
+                    'name': '技术卡',
+                    'order': 20
+                },
+                {
+                    'type': StepTypes.DIVERGENCE_SCENE,
+                    'name': '发散场景',
+                    'order': 30
+                },
+                {
+                    'type': StepTypes.CONVERGENCE_SCENE,
+                    'name': '收敛场景',
+                    'order': 40
+                },
+                {
+                    'type': StepTypes.GENERATE_REPORT,
+                    'name': '生成报告',
+                    'order': 50
+                }]
+            for step in default_steps:
+                step = Step(name=step['name'], order=step['order'], type=step['type'], workbench=workbench)
                 step.save()
 
             # default add self in this workbench
             userWorkbench = UserWorkbench(user=request.user, workbench=workbench)
             userWorkbench.save()
-            return HttpResponse()
+            response = {
+                "workbench_id": workbench.id
+            }
+            return JsonResponse(response)
         except ValidationError as e:
             return HttpResponse(e, status=400)
         except Exception as e:
@@ -179,7 +205,8 @@ def workbenches_ops_by_id(request, workbench_id):
                 return {
                     "id": step.id,
                     "name": step.name,
-                    "order": step.order
+                    "order": step.order,
+                    "type": step.type
                 }
 
             data = {
@@ -207,7 +234,7 @@ def workbenches_ops_by_id(request, workbench_id):
 
 
 @login_required_401
-@require_http_methods(['PUT'])
+@require_http_methods(['POST'])
 def elements_ops(request):
     try:
         createElement = CreateElement.Schema().loads(request.body)
@@ -219,7 +246,10 @@ def elements_ops(request):
         if createElement.card_id != None:
             element.card = Card.objects.get(pk=createElement.card_id)
         element.save()
-        return HttpResponse()
+        response = {
+            "element_id": element.id
+        }
+        return JsonResponse(response)
     except ValidationError as e:
         return HttpResponse(e, status=400)
     except Exception as e:
@@ -227,7 +257,7 @@ def elements_ops(request):
 
 
 @login_required_401
-@require_http_methods(['GET', 'POST'])
+@require_http_methods(['GET', 'PUT'])
 def elements_ops_by_id(request, element_id):
     try:
         element = Element.objects.get(pk=element_id)
@@ -236,10 +266,10 @@ def elements_ops_by_id(request, element_id):
                 'type': element.type,
                 'content': element.content,
                 'step_id': element.step.id,
-                'card': element.card.name,
+                'card': element.card.name if element.card is not None else '',
                 'meta': element.meta,
                 'created_by': element.created_by.id})
-        if request.method == 'POST':
+        if request.method == 'PUT':
             update_element = UpdateElement.Schema().loads(request.body)
             if update_element.content.strip(' ') is not None:
                 element.content = update_element.content.strip(' ')
