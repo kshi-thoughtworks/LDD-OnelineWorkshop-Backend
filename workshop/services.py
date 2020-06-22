@@ -298,6 +298,7 @@ def elements_ops_by_id(request, element_id):
         if request.method == 'GET':
             return JsonResponse({
                 'type': element.type,
+                'title': element.title,
                 'content': element.content,
                 'step_id': element.step.id,
                 'card': element.card.name if element.card is not None else '',
