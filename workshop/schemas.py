@@ -34,7 +34,7 @@ class UpdateWorkbench:
 
 
 @dataclass
-class CreateElement:
+class CreateSticker:
     type: str = field(init=False, default=Element_type.STICKY)
     content: str = field(metadata={"validate": marshmallow.validate.Length(min=0, max=1024)})
     step_id: int = field()
@@ -45,8 +45,19 @@ class CreateElement:
 
 
 @dataclass
+class CreateCard:
+    type: str = field(init=False, default=Element_type.STICKY)
+    title: str = field(metadata={"validate": marshmallow.validate.Length(min=0, max=20)})
+    step_id: int = field()
+    content: str = field(metadata={"validate": marshmallow.validate.Length(min=0, max=1024)}, default='')
+    card_id: int = field(default=None)
+    # save properties, like: rotate, scale, color, length
+    meta: dict = field(default=None)
+
+
+@dataclass
 class UpdateElement:
-    content: str = field(metadata={"validate": marshmallow.validate.Length(min=0, max=1024)})
+    content: str = field(metadata={"validate": marshmallow.validate.Length(min=0, max=1024)}, default='')
     title: str = field(metadata={"validate": marshmallow.validate.Length(min=0, max=20)}, default='')
     meta: dict = field(default=None)
 

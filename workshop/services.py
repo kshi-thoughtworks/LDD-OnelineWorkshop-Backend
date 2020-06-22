@@ -10,7 +10,8 @@ from marshmallow.exceptions import ValidationError
 
 from .enums import Card_type, StepTypes
 from .models import User, UserWorkbench, Workbench, Step, Element, Card
-from .schemas import CreateUser, LoginUser, CreateWorkbench, AddUsers, UpdateWorkbench, CreateElement, UpdateElement
+from .schemas import CreateUser, LoginUser, CreateWorkbench, AddUsers, UpdateWorkbench, CreateSticker, CreateCard, \
+    UpdateElement
 from .decorators import login_required_401
 
 UNIQUE_ERROR_PREFIX = "UNIQUE constraint failed"
@@ -234,13 +235,12 @@ def workbenches_ops_by_id(request, workbench_id):
         return HttpResponse(e, status=400)
 
 
-@login_required_401
-@require_http_methods(['POST'])
-def elements_ops(request):
+def elements_ops(request, createElement):
     try:
-        createElement = CreateElement.Schema().loads(request.body)
+        createElement = createElement.Schema().loads(request.body)
         element = Element(type=createElement.type,
                           content=createElement.content,
+                          title = createElement.title,
                           step=Step.objects.get(pk=createElement.step_id),
                           created_by=request.user,
                           meta=createElement.meta)
@@ -257,6 +257,18 @@ def elements_ops(request):
     except Exception as e:
         print(e)
         return HttpResponse(e, status=500)
+
+
+@login_required_401
+@require_http_methods(['POST'])
+def elements_stickers_ops(request):
+    elements_ops(request, CreateSticker)
+
+
+@login_required_401
+@require_http_methods(['POST'])
+def elements_cards_ops(request):
+    elements_ops(request, CreateCard)
 
 
 @login_required_401
