@@ -262,13 +262,13 @@ def elements_ops(request, createElement):
 @login_required_401
 @require_http_methods(['POST'])
 def elements_stickers_ops(request):
-    elements_ops(request, CreateSticker)
+    return elements_ops(request, CreateSticker)
 
 
 @login_required_401
 @require_http_methods(['POST'])
 def elements_cards_ops(request):
-    elements_ops(request, CreateCard)
+    return elements_ops(request, CreateCard)
 
 
 @login_required_401
