@@ -267,13 +267,23 @@ def copy_element_by_id(request, element_id):
         element = Element(type=oldElement.type,
                           content=oldElement.content,
                           step=Step.objects.get(pk=oldElement.step_id),
-                          created_by=request.user,
-                          meta=oldElement.meta)
+                          created_by=request.user
+                          )
         if oldElement.card_id is not None:
             element.card = Card.objects.get(pk=oldElement.card_id)
+            newMeta = oldElement.meta.to_python(oldElement.meta)
+            newMeta["x"] = int(newMeta["x"]) + int(newMeta["width"])
+            newMeta["y"] = int(newMeta["y"]) + int(newMeta["height"])
+            element.meta = oldElement.meta.get_prep_value(newMeta)
         element.save()
         response = {
-            "element_id": element.id
+            "element_id": element.id,
+            'type': element.type,
+            'content': element.content,
+            'step_id': element.step.id,
+            'card': element.card.name if element.card is not None else '',
+            'meta': element.meta,
+            'created_by': element.created_by.id
         }
         return JsonResponse(response)
     except Exception as e:
