@@ -57,10 +57,10 @@ class UserWorkbench(models.Model):
 
 class Card(models.Model):
     name = models.CharField(max_length=100)
-    #当前卡的类型
+    # 当前卡的类型
     type = models.CharField(max_length=20)
-    #父类卡的类型
-    sup_type = models.CharField(max_length=20,default='')
+    # 父类卡的类型
+    sup_type = models.CharField(max_length=20, default='')
     description = models.CharField(max_length=1024)
     order = models.IntegerField(default=0)
 
@@ -79,7 +79,8 @@ class Step(models.Model):
 
 
 class Element(models.Model):
-    type = models.CharField(max_length=20,default=Element_type.STICKY)
+    type = models.CharField(max_length=20, default=Element_type.STICKY)
+    title = models.CharField(max_length=1024, default='')
     content = models.CharField(max_length=1024)
     step = models.ForeignKey(Step, on_delete=models.SET_NULL, null=True)
     card = models.ForeignKey(Card, on_delete=models.SET_NULL, null=True)

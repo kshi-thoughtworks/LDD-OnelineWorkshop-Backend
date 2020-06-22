@@ -243,7 +243,7 @@ def elements_ops(request):
                           step=Step.objects.get(pk=createElement.step_id),
                           created_by=request.user,
                           meta=createElement.meta)
-        if createElement.card_id != None:
+        if createElement.card_id is not None:
             element.card = Card.objects.get(pk=createElement.card_id)
         element.save()
         response = {
@@ -251,13 +251,37 @@ def elements_ops(request):
         }
         return JsonResponse(response)
     except ValidationError as e:
+        print(e)
         return HttpResponse(e, status=400)
+    except Exception as e:
+        print(e)
+        return HttpResponse(e, status=500)
+
+
+@login_required_401
+@require_http_methods(['POST'])
+def copy_element_ops_by_id(request, element_id):
+    try:
+        oldElement = Element.objects.get(pk=element_id)
+
+        element = Element(type=oldElement.type,
+                          content=oldElement.content,
+                          step=Step.objects.get(pk=oldElement.step_id),
+                          created_by=request.user,
+                          meta=oldElement.meta)
+        if oldElement.card_id is not None:
+            element.card = Card.objects.get(pk=oldElement.card_id)
+        element.save()
+        response = {
+            "element_id": element.id
+        }
+        return JsonResponse(response)
     except Exception as e:
         return HttpResponse(e, status=500)
 
 
 @login_required_401
-@require_http_methods(['GET', 'PUT'])
+@require_http_methods(['GET', 'PUT', 'DELETE'])
 def elements_ops_by_id(request, element_id):
     try:
         element = Element.objects.get(pk=element_id)
@@ -271,11 +295,16 @@ def elements_ops_by_id(request, element_id):
                 'created_by': element.created_by.id})
         if request.method == 'PUT':
             update_element = UpdateElement.Schema().loads(request.body)
+            if update_element.title.strip(' ') is not None:
+                element.title = update_element.title.strip(' ')
             if update_element.content.strip(' ') is not None:
                 element.content = update_element.content.strip(' ')
             if update_element.meta is not None:
                 element.meta = update_element.meta
             element.save()
+            return HttpResponse()
+        if request.method == 'DELETE':
+            element.delete()
             return HttpResponse()
     except ValidationError as e:
         return HttpResponse(e, status=400)
@@ -339,6 +368,7 @@ def get_cards_by_type(request, card_tpye):
         }
 
     return JsonResponse(list(map(get_card, cards)), safe=False)
+
 
 @login_required_401
 @require_http_methods(['GET'])
