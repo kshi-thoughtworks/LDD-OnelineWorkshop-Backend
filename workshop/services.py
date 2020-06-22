@@ -260,7 +260,7 @@ def elements_ops(request):
 
 @login_required_401
 @require_http_methods(['POST'])
-def copy_element_ops_by_id(request, element_id):
+def copy_element_by_id(request, element_id):
     try:
         oldElement = Element.objects.get(pk=element_id)
 
