@@ -46,7 +46,7 @@ class CreateSticker:
 
 @dataclass
 class CreateCard:
-    type: str = field(init=False, default=Element_type.STICKY)
+    type: str = field(init=False, default=Element_type.CARD)
     title: str = field(metadata={"validate": marshmallow.validate.Length(min=0, max=20)})
     step_id: int = field()
     content: str = field(metadata={"validate": marshmallow.validate.Length(min=0, max=1024)}, default='')
