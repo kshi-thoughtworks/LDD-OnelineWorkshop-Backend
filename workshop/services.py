@@ -210,6 +210,7 @@ def workbenches_ops_by_id(request, workbench_id):
                 }
 
             data = {
+                'id': workbench.id,
                 'name': workbench.name,
                 'description': workbench.description,
                 'created_by': workbench.created_by.username,
@@ -226,7 +227,7 @@ def workbenches_ops_by_id(request, workbench_id):
             if updateWorkbench.name.strip(' ') is not None:
                 workbench.name = updateWorkbench.name.strip(' ')
             if updateWorkbench.description.strip(' ') is not None:
-                workbench.description = updateWorkbench.name.strip(' ')
+                workbench.description = updateWorkbench.description.strip(' ')
             workbench.save()
             return HttpResponse()
     except ValidationError as e:
