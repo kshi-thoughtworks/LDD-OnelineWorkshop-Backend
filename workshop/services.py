@@ -280,6 +280,7 @@ def copy_element_by_id(request, element_id):
         response = {
             "element_id": element.id,
             'type': element.type,
+            'title': element.title,
             'content': element.content,
             'step_id': element.step.id,
             'card': element.card.name if element.card is not None else '',
@@ -343,6 +344,7 @@ def list_elements_by_step(request, step_id):
         data = {
             'id': element.id,
             'type': element.type,
+            'title': element.title,
             'content': element.content,
             'step_id': element.step.id,
             'meta': element.meta,
