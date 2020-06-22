@@ -59,8 +59,8 @@ class Card(models.Model):
     name = models.CharField(max_length=100)
     # 当前卡的类型
     type = models.CharField(max_length=20)
-    # 父类卡的类型
-    sup_type = models.CharField(max_length=20, default='')
+    # 子类卡的类型
+    sub_type = models.CharField(max_length=20, default='')
     description = models.CharField(max_length=1024)
     order = models.IntegerField(default=0)
 

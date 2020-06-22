@@ -365,14 +365,14 @@ def get_card_types(request):
 @login_required_401
 @require_http_methods(['GET'])
 def get_cards_by_type(request, card_tpye):
-    cards = Card.objects.filter(type=card_tpye).order_by('sup_type').order_by('order')
+    cards = Card.objects.filter(type=card_tpye).order_by('sub_type').order_by('order')
 
     def get_card(card: Card):
         return {
             "id": card.id,
             "name": card.name,
             "type": card.type,
-            "sub_type": card.sup_type,
+            "sub_type": card.sub_type,
             "description": card.description,
             "order": card.order
         }
@@ -383,14 +383,14 @@ def get_cards_by_type(request, card_tpye):
 @login_required_401
 @require_http_methods(['GET'])
 def get_cards(request):
-    cards = Card.objects.all().order_by('sup_type').order_by('order')
+    cards = Card.objects.all().order_by('sub_type').order_by('order')
 
     def get_card(card: Card):
         return {
             "id": card.id,
             "name": card.name,
             "type": card.type,
-            "sub_type": card.sup_type,
+            "sub_type": card.sub_type,
             "description": card.description,
             "order": card.order
         }
