@@ -7,6 +7,7 @@ from django.db.utils import IntegrityError
 from django.shortcuts import render
 from django.views.decorators.http import require_http_methods
 from marshmallow.exceptions import ValidationError
+from functools import reduce
 
 from .enums import Card_type, StepTypes
 from .models import User, UserWorkbench, Workbench, Step, Element, Card
@@ -62,15 +63,23 @@ def login_user(request):
 @login_required_401
 @require_http_methods(['GET'])
 def list_users(request):
+    """
+    Get all users except superuser and the user self
+    :param request:
+    :return:
+    """
     users = User.objects.all()
 
-    def get_user_data(user: User):
-        return {
-            'username': user.username,
-            'email': user.email
-        }
+    def get_user_data(user_list: list, user: User):
+        if not user.is_superuser and user != request.user:
+            user_list.append({
+                'id': user.id,
+                'username': user.username,
+                'email': user.email
+            })
+        return user_list
 
-    users_data = list(map(get_user_data, users))
+    users_data = reduce(get_user_data, list(users), [])
     return JsonResponse(users_data, safe=False)
 
 
@@ -79,7 +88,7 @@ def list_users(request):
 def users_in_workbench(request, workbench_id: int):
     """
     GET: List all users in workbench
-    PUT: Add users to workbench
+    POST: Add users to workbench
     :param request:
     :param workbench_id:
     :return:
