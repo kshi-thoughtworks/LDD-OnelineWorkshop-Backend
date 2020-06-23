@@ -7,8 +7,9 @@ from django.db.utils import IntegrityError
 from django.shortcuts import render
 from django.views.decorators.http import require_http_methods
 from marshmallow.exceptions import ValidationError
+from django.db.models import Q
 
-from .enums import Card_type, StepTypes
+from .enums import Card_type, StepTypes, Tool_Card_type
 from .models import User, UserWorkbench, Workbench, Step, Element, Card
 from .schemas import CreateUser, LoginUser, CreateWorkbench, AddUsers, UpdateWorkbench, CreateSticker, CreateCard, \
     UpdateElement
@@ -344,6 +345,7 @@ def update_element_by_id(element, request):
     if update_element.content.strip(' ') is not None:
         element.content = update_element.content.strip(' ')
     if update_element.meta is not None:
+        print(update_element.meta)
         element.meta = update_element.meta
     element.version = element.version + 1
     element.save()
@@ -403,14 +405,14 @@ def get_card_types(request):
 @login_required_401
 @require_http_methods(['GET'])
 def get_cards_by_type(request, card_tpye):
-    cards = Card.objects.filter(type=card_tpye).order_by('sub_type').order_by('order')
+    cards = Card.objects.filter(type=card_tpye).order_by('sup_type').order_by('order')
 
     def get_card(card: Card):
         return {
             "id": card.id,
             "name": card.name,
             "type": card.type,
-            "sub_type": card.sub_type,
+            "sub_type": card.sup_type,
             "description": card.description,
             "order": card.order
         }
@@ -420,15 +422,37 @@ def get_cards_by_type(request, card_tpye):
 
 @login_required_401
 @require_http_methods(['GET'])
-def get_cards(request):
-    cards = Card.objects.all().order_by('sub_type').order_by('order')
+def get_tools_cards(request):
+    condition = Q(sup_type=Tool_Card_type.MONETIZING) | Q(sup_type=Tool_Card_type.CLASS)
+    condition = condition | Q(sup_type=Tool_Card_type.SUBJECT) | Q(sup_type=Tool_Card_type.TECH)
+
+    cards = Card.objects.filter(condition).order_by('sup_type').order_by('order')
 
     def get_card(card: Card):
         return {
             "id": card.id,
             "name": card.name,
             "type": card.type,
-            "sub_type": card.sub_type,
+            "sub_type": card.sup_type,
+            "description": card.description,
+            "order": card.order
+        }
+
+    print(list(map(get_card, cards)))
+    return JsonResponse(list(map(get_card, cards)), safe=False)
+
+
+@login_required_401
+@require_http_methods(['GET'])
+def get_cards(request):
+    cards = Card.objects.all().order_by('sup_type').order_by('order')
+
+    def get_card(card: Card):
+        return {
+            "id": card.id,
+            "name": card.name,
+            "type": card.type,
+            "sub_type": card.sup_type,
             "description": card.description,
             "order": card.order
         }

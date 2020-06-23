@@ -14,8 +14,19 @@ class Card_type():
     DATA = 'data'
     # 业务价值痛点卡
     VALUE = 'value'
-    #场景卡
+    # 场景卡
     SCENE = 'scene'
+
+
+class Tool_Card_type():
+    # 变现卡
+    MONETIZING = 'monetizing'
+    # 技能卡
+    TECH = 'tech'
+    # 类别卡
+    CLASS = 'class'
+    # 主题卡
+    SUBJECT = 'subject'
 
 
 class StepTypes:
