@@ -421,7 +421,7 @@ def get_cards_by_type(request, card_tpye):
             "id": card.id,
             "name": card.name,
             "type": card.type,
-            "sub_type": card.sup_type,
+            "sup_type": card.sup_type,
             "description": card.description,
             "order": card.order
         }
@@ -442,7 +442,7 @@ def get_tools_cards(request):
             "id": card.id,
             "name": card.name,
             "type": card.type,
-            "sub_type": card.sup_type,
+            "sup_type": card.sup_type,
             "description": card.description,
             "order": card.order
         }
@@ -460,7 +460,7 @@ def get_cards(request):
             "id": card.id,
             "name": card.name,
             "type": card.type,
-            "sub_type": card.sup_type,
+            "sup_type": card.sup_type,
             "description": card.description,
             "order": card.order
         }
