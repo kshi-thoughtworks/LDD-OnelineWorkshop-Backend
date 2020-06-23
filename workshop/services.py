@@ -240,7 +240,7 @@ def elements_ops(request, createElement):
         createElement = createElement.Schema().loads(request.body)
         element = Element(type=createElement.type,
                           content=createElement.content,
-                          title = createElement.title,
+                          title=createElement.title,
                           step=Step.objects.get(pk=createElement.step_id),
                           created_by=request.user,
                           meta=createElement.meta)
@@ -310,29 +310,42 @@ def elements_ops_by_id(request, element_id):
     try:
         element = Element.objects.get(pk=element_id)
         if request.method == 'GET':
-            return JsonResponse({
-                'type': element.type,
-                'title': element.title,
-                'content': element.content,
-                'step_id': element.step.id,
-                'card': element.card.name if element.card is not None else '',
-                'meta': element.meta,
-                'created_by': element.created_by.id})
+            return get_element_by_id(element)
         if request.method == 'PUT':
-            update_element = UpdateElement.Schema().loads(request.body)
-            if update_element.title.strip(' ') is not None:
-                element.title = update_element.title.strip(' ')
-            if update_element.content.strip(' ') is not None:
-                element.content = update_element.content.strip(' ')
-            if update_element.meta is not None:
-                element.meta = update_element.meta
-            element.save()
-            return HttpResponse()
+            return update_element_by_id(element, request)
         if request.method == 'DELETE':
-            element.delete()
-            return HttpResponse()
+            return delete_element_by_id(element)
     except ValidationError as e:
         return HttpResponse(e, status=400)
+
+
+def get_element_by_id(element):
+    return JsonResponse({
+        'type': element.type,
+        'title': element.title,
+        'content': element.content,
+        'step_id': element.step.id,
+        'card': element.card.name if element.card is not None else '',
+        'meta': element.meta,
+        'created_by': element.created_by.id})
+
+
+def update_element_by_id(element, request):
+    update_element = UpdateElement.Schema().loads(request.body)
+    if update_element.title.strip(' ') is not None:
+        element.title = update_element.title.strip(' ')
+    if update_element.content.strip(' ') is not None:
+        element.content = update_element.content.strip(' ')
+    if update_element.meta is not None:
+        element.meta = update_element.meta
+    element.save()
+    return HttpResponse()
+
+
+def delete_element_by_id(element):
+    if element is not None:
+        element.delete()
+    return HttpResponse()
 
 
 @login_required_401
