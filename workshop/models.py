@@ -84,6 +84,7 @@ class Element(models.Model):
     content = models.CharField(max_length=1024)
     step = models.ForeignKey(Step, on_delete=models.SET_NULL, null=True)
     card = models.ForeignKey(Card, on_delete=models.SET_NULL, null=True)
+    version = models.IntegerField(default=0)
     # save properties, such as: x, y, height, width, rotate, scale, color, length
     meta = JSONField(max_length=1024, null=True)
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)

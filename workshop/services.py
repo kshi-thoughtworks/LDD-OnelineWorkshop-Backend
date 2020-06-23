@@ -235,30 +235,6 @@ def workbenches_ops_by_id(request, workbench_id):
         return HttpResponse(e, status=400)
 
 
-def elements_ops(request, createElement):
-    try:
-        createElement = createElement.Schema().loads(request.body)
-        element = Element(type=createElement.type,
-                          content=createElement.content,
-                          title=createElement.title,
-                          step=Step.objects.get(pk=createElement.step_id),
-                          created_by=request.user,
-                          meta=createElement.meta)
-        if createElement.card_id is not None:
-            element.card = Card.objects.get(pk=createElement.card_id)
-        element.save()
-        response = {
-            "element_id": element.id
-        }
-        return JsonResponse(response)
-    except ValidationError as e:
-        print(e)
-        return HttpResponse(e, status=400)
-    except Exception as e:
-        print(e)
-        return HttpResponse(e, status=500)
-
-
 @login_required_401
 @require_http_methods(['POST'])
 def elements_stickers_ops(request):
@@ -271,6 +247,32 @@ def elements_cards_ops(request):
     return elements_ops(request, CreateCard)
 
 
+def elements_ops(request, createElement):
+    try:
+        createElement = createElement.Schema().loads(request.body)
+        element = Element(type=createElement.type,
+                          content=createElement.content,
+                          title=createElement.title,
+                          step=Step.objects.get(pk=createElement.step_id),
+                          created_by=request.user,
+                          version=0,
+                          meta=createElement.meta)
+        if createElement.card_id is not None:
+            element.card = Card.objects.get(pk=createElement.card_id)
+        element.save()
+        response = {
+            "element_id": element.id,
+            "version": element.version
+        }
+        return JsonResponse(response)
+    except ValidationError as e:
+        print(e)
+        return HttpResponse(e, status=400)
+    except Exception as e:
+        print(e)
+        return HttpResponse(e, status=500)
+
+
 @login_required_401
 @require_http_methods(['POST'])
 def copy_element_by_id(request, element_id):
@@ -278,9 +280,11 @@ def copy_element_by_id(request, element_id):
         oldElement = Element.objects.get(pk=element_id)
 
         element = Element(type=oldElement.type,
+                          title=oldElement.title,
                           content=oldElement.content,
                           step=Step.objects.get(pk=oldElement.step_id),
-                          created_by=request.user
+                          created_by=request.user,
+                          version=0
                           )
         if oldElement.card_id is not None:
             element.card = Card.objects.get(pk=oldElement.card_id)
@@ -297,6 +301,7 @@ def copy_element_by_id(request, element_id):
             'step_id': element.step.id,
             'card': element.card.name if element.card is not None else '',
             'meta': element.meta,
+            "version": element.version,
             'created_by': element.created_by.id
         }
         return JsonResponse(response)
@@ -327,17 +332,20 @@ def get_element_by_id(element):
         'step_id': element.step.id,
         'card': element.card.name if element.card is not None else '',
         'meta': element.meta,
+        "version": element.version,
         'created_by': element.created_by.id})
 
 
 def update_element_by_id(element, request):
     update_element = UpdateElement.Schema().loads(request.body)
+
     if update_element.title.strip(' ') is not None:
         element.title = update_element.title.strip(' ')
     if update_element.content.strip(' ') is not None:
         element.content = update_element.content.strip(' ')
     if update_element.meta is not None:
         element.meta = update_element.meta
+    element.version = element.version + 1
     element.save()
     return HttpResponse()
 
@@ -373,6 +381,7 @@ def list_elements_by_step(request, step_id):
             'content': element.content,
             'step_id': element.step.id,
             'meta': element.meta,
+            "version": element.version,
             'created_by': element.created_by.id
         }
         if element.card is not None:

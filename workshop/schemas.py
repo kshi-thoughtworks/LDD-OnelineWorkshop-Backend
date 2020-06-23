@@ -57,6 +57,7 @@ class CreateCard:
 
 @dataclass
 class UpdateElement:
+    version: int = field(default=0)
     content: str = field(metadata={"validate": marshmallow.validate.Length(min=0, max=1024)}, default='')
     title: str = field(metadata={"validate": marshmallow.validate.Length(min=0, max=20)}, default='')
     meta: dict = field(default=None)
