@@ -14,7 +14,7 @@ from .enums import Card_type, StepTypes, RoleTypes, ToolCardTypes
 from .models import User, UserWorkbench, Workbench, Step, Element, Card
 from .schemas import CreateUser, LoginUser, CreateWorkbench, AddUsers, UpdateWorkbench, CreateSticker, CreateCard, \
     UpdateElement
-from .decorators import login_required_401
+from .decorators import login_required_401, my_require_http_methods
 
 UNIQUE_ERROR_PREFIX = "UNIQUE constraint failed"
 
@@ -252,18 +252,6 @@ def index(request):
     return render(request, 'index.html')
 
 
-def my_require_http_methods(methods):
-    def decorator(func):
-        @login_required_401
-        @require_http_methods(methods)
-        def wrap(*args, **kw):
-            return func(*args, **kw)
-
-        return wrap
-
-    return decorator
-
-
 class ElementService:
 
     @staticmethod
@@ -441,7 +429,6 @@ class CardService:
     @my_require_http_methods(['GET'])
     def get_cards_by_type(request, card_tpye):
         cards = Card.objects.filter(type=card_tpye).order_by('sup_type').order_by('order')
-
         return JsonResponse(list(map(CardService.get_card, cards)), safe=False)
 
     @staticmethod
@@ -451,7 +438,6 @@ class CardService:
         conditions = map(lambda sup_type: Q(sup_type=sup_type), toolsTypes)
         condition = reduce(lambda a, b: a | b, conditions)
         cards = Card.objects.filter(condition).order_by('sup_type').order_by('order')
-
         return JsonResponse(list(map(CardService.get_card, cards)), safe=False)
 
     @staticmethod

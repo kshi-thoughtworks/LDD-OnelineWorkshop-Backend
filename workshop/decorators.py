@@ -1,4 +1,5 @@
 from django.http import HttpResponse
+from django.views.decorators.http import require_http_methods
 
 
 def login_required_401(function=None):
@@ -8,6 +9,7 @@ def login_required_401(function=None):
                 return view_func(request, *args, **kwargs)
             else:
                 return HttpResponse(status=401)
+
         return _wrapped_view
 
     if function is None:
@@ -26,9 +28,22 @@ def http_method(permit_methods=None, function=None):
                 return view_func(request, *args, **kwargs)
             else:
                 return HttpResponse("http method not support", status=405)
+
         return _wrapped_view
 
     if function is None:
         return _decorator
     else:
         return _decorator(function)
+
+
+def my_require_http_methods(methods):
+    def decorator(func):
+        @login_required_401
+        @require_http_methods(methods)
+        def wrap(*args, **kw):
+            return func(*args, **kw)
+
+        return wrap
+
+    return decorator
