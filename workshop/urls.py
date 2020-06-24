@@ -2,6 +2,7 @@ from django.urls import path
 from django.views.generic import TemplateView
 from django.conf.urls import url
 
+from workshop.services import CardService
 from . import services
 
 urlpatterns = [
@@ -16,9 +17,10 @@ urlpatterns = [
     path('elements/<int:element_id>', services.elements_ops_by_id, name='elements_ops_by_id'),
     path('elements/<int:element_id>/copy', services.copy_element_by_id, name='copy_element_by_id'),
     path('steps/<int:step_id>/elements', services.list_elements_by_step, name='list_elements_by_step'),
-    path('cards', services.get_cards, name='get_cards'),
-    path('cards/tools', services.get_tools_cards, name='get_tools_cards'),
-    path('cards/types', services.get_card_types, name='get_card_types'),
-    path('cards/types/<str:card_tpye>', services.get_cards_by_type, name='get_cards_by_type'),
+    path('cards', CardService.get_cards, name='get_cards'),
+    path('cards/tools', CardService.get_tools_cards, name='get_tools_cards'),
+    path('cards/types', CardService.get_card_types, name='get_card_types'),
+    path('cards/types/<str:card_tpye>', CardService.get_cards_by_type, name='get_cards_by_type'),
+    path('something', CardService.get_something, name='get_something'),
     url(r'^.*?$', TemplateView.as_view(template_name='index.html')),
 ]

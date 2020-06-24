@@ -381,62 +381,75 @@ def list_elements_by_step(request, step_id):
             'created_by': element.created_by.id
         }
         if element.card is not None:
-            data['card'] = get_card(element.card)
+            data['card'] = CardService.get_card(element.card)
         return data
 
     elements_data = list(map(get_element_data, elements))
     return JsonResponse(elements_data, safe=False)
 
 
-def get_card(card: Card):
-    if card is None:
-        return None
-
-    return {
-        "id": card.id,
-        "name": card.name,
-        "type": card.type,
-        "sup_type": card.sup_type,
-        "description": card.description,
-        "order": card.order
-    }
-
-
-@login_required_401
-@require_http_methods(['GET'])
-def get_card_types(request):
-    logger.info("get card types")
-    cards = [Card_type.DATA, Card_type.SCENE, Card_type.VALUE, Card_type.VISION, Card_type.TOOL]
-    return JsonResponse(cards, safe=False)
-
-
-@login_required_401
-@require_http_methods(['GET'])
-def get_cards_by_type(request, card_tpye):
-    cards = Card.objects.filter(type=card_tpye).order_by('sup_type').order_by('order')
-
-    return JsonResponse(list(map(get_card, cards)), safe=False)
-
-
-@login_required_401
-@require_http_methods(['GET'])
-def get_tools_cards(request):
-    toolsTypes = ToolCardTypes.getMemberValues()
-    conditions = map(lambda sup_type: Q(sup_type=sup_type), toolsTypes)
-    condition = reduce(lambda a, b: a | b, conditions)
-    cards = Card.objects.filter(condition).order_by('sup_type').order_by('order')
-
-    return JsonResponse(list(map(get_card, cards)), safe=False)
-
-
-@login_required_401
-@require_http_methods(['GET'])
-def get_cards(request):
-    cards = Card.objects.all().order_by('sup_type').order_by('order')
-
-    return JsonResponse(list(map(get_card, cards)), safe=False)
-
-
 def index(request):
     request.META["CSRF_COOKIE_USED"] = True
     return render(request, 'index.html')
+
+
+def my_require_http_methods(methods):
+    def decorator(func):
+        @login_required_401
+        @require_http_methods(methods)
+        def wrap(*args, **kw):
+            return func(*args, **kw)
+        return wrap
+    return decorator
+
+
+class CardService:
+
+    @staticmethod
+    @my_require_http_methods(['GET'])
+    def get_something(request):
+        return JsonResponse(list(["a", "b", "c"]), safe=False)
+
+    @staticmethod
+    def get_card(card: Card):
+        if card is None:
+            return None
+
+        return {
+            "id": card.id,
+            "name": card.name,
+            "type": card.type,
+            "sup_type": card.sup_type,
+            "description": card.description,
+            "order": card.order
+        }
+
+    @staticmethod
+    @my_require_http_methods(['GET'])
+    def get_card_types(request):
+        logger.info("get card types")
+        cards = [Card_type.DATA, Card_type.SCENE, Card_type.VALUE, Card_type.VISION, Card_type.TOOL]
+        return JsonResponse(cards, safe=False)
+
+    @staticmethod
+    @my_require_http_methods(['GET'])
+    def get_cards_by_type(request, card_tpye):
+        cards = Card.objects.filter(type=card_tpye).order_by('sup_type').order_by('order')
+
+        return JsonResponse(list(map(CardService.get_card, cards)), safe=False)
+
+    @staticmethod
+    @my_require_http_methods(['GET'])
+    def get_tools_cards(request):
+        toolsTypes = ToolCardTypes.getMemberValues()
+        conditions = map(lambda sup_type: Q(sup_type=sup_type), toolsTypes)
+        condition = reduce(lambda a, b: a | b, conditions)
+        cards = Card.objects.filter(condition).order_by('sup_type').order_by('order')
+
+        return JsonResponse(list(map(CardService.get_card, cards)), safe=False)
+
+    @staticmethod
+    @my_require_http_methods(['GET'])
+    def get_cards(request):
+        cards = Card.objects.all().order_by('sup_type').order_by('order')
+        return JsonResponse(list(map(CardService.get_card, cards)), safe=False)
