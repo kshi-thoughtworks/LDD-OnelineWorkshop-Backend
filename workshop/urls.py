@@ -2,16 +2,17 @@ from django.urls import path
 from django.views.generic import TemplateView
 from django.conf.urls import url
 
-from workshop.services import CardService, ElementService
-from . import services
+from .services.card_service import CardService
+from .services.element_service import ElementService
+from .services import other_services
 
 urlpatterns = [
-    path('users/register', services.register_user, name='register'),
-    path('users/login', services.login_user, name='login'),
-    path('users', services.list_users, name='users'),
-    path('workbenches', services.workbenches_ops, name='workbenches_ops'),
-    path('workbenches/<int:workbench_id>', services.workbenches_ops_by_id, name='workbenches_ops_by_id'),
-    path('workbenches/<int:workbench_id>/users', services.users_in_workbench, name='users_in_workbench'),
+    path('users/register', other_services.register_user, name='register'),
+    path('users/login', other_services.login_user, name='login'),
+    path('users', other_services.list_users, name='users'),
+    path('workbenches', other_services.workbenches_ops, name='workbenches_ops'),
+    path('workbenches/<int:workbench_id>', other_services.workbenches_ops_by_id, name='workbenches_ops_by_id'),
+    path('workbenches/<int:workbench_id>/users', other_services.users_in_workbench, name='users_in_workbench'),
     path('elements/sticker', ElementService.elements_stickers_ops, name='elements_stickers_ops'),
     path('elements/card', ElementService.elements_cards_ops, name='elements_cards_ops'),
     path('elements/<int:element_id>', ElementService.elements_ops_by_id, name='elements_ops_by_id'),
