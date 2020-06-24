@@ -1,6 +1,5 @@
 import logging
 
-
 from django.http import JsonResponse
 from functools import reduce
 from django.db.models import Q
