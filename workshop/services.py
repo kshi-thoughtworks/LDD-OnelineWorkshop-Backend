@@ -276,10 +276,8 @@ def elements_ops(request, createElement):
         }
         return JsonResponse(response)
     except ValidationError as e:
-        print(e)
         return HttpResponse(e, status=400)
     except Exception as e:
-        print(e)
         return HttpResponse(e, status=500)
 
 
@@ -354,7 +352,6 @@ def update_element_by_id(element, request):
     if update_element.content.strip(' ') is not None:
         element.content = update_element.content.strip(' ')
     if update_element.meta is not None:
-        print(update_element.meta)
         element.meta = update_element.meta
     element.version = element.version + 1
     element.save()
@@ -371,18 +368,6 @@ def delete_element_by_id(element):
 @require_http_methods(['GET'])
 def list_elements_by_step(request, step_id):
     elements = Element.objects.filter(step_id=step_id)
-
-    def get_card(card: Card):
-        if card is not None:
-            return {
-                "id": card.id,
-                "name": card.name,
-                "type": card.type,
-                "description": card.description,
-                "order": card.order
-            }
-        else:
-            return None
 
     def get_element_data(element: Element):
         data = {
@@ -403,6 +388,20 @@ def list_elements_by_step(request, step_id):
     return JsonResponse(elements_data, safe=False)
 
 
+def get_card(card: Card):
+    if card is None:
+        return None
+
+    return {
+        "id": card.id,
+        "name": card.name,
+        "type": card.type,
+        "sup_type": card.sup_type,
+        "description": card.description,
+        "order": card.order
+    }
+
+
 @login_required_401
 @require_http_methods(['GET'])
 def get_card_types(request):
@@ -416,37 +415,16 @@ def get_card_types(request):
 def get_cards_by_type(request, card_tpye):
     cards = Card.objects.filter(type=card_tpye).order_by('sup_type').order_by('order')
 
-    def get_card(card: Card):
-        return {
-            "id": card.id,
-            "name": card.name,
-            "type": card.type,
-            "sup_type": card.sup_type,
-            "description": card.description,
-            "order": card.order
-        }
-
     return JsonResponse(list(map(get_card, cards)), safe=False)
 
 
 @login_required_401
 @require_http_methods(['GET'])
 def get_tools_cards(request):
-
     toolsTypes = ToolCardTypes.getMemberValues()
     conditions = map(lambda sup_type: Q(sup_type=sup_type), toolsTypes)
     condition = reduce(lambda a, b: a | b, conditions)
     cards = Card.objects.filter(condition).order_by('sup_type').order_by('order')
-
-    def get_card(card: Card):
-        return {
-            "id": card.id,
-            "name": card.name,
-            "type": card.type,
-            "sup_type": card.sup_type,
-            "description": card.description,
-            "order": card.order
-        }
 
     return JsonResponse(list(map(get_card, cards)), safe=False)
 
@@ -455,16 +433,6 @@ def get_tools_cards(request):
 @require_http_methods(['GET'])
 def get_cards(request):
     cards = Card.objects.all().order_by('sup_type').order_by('order')
-
-    def get_card(card: Card):
-        return {
-            "id": card.id,
-            "name": card.name,
-            "type": card.type,
-            "sup_type": card.sup_type,
-            "description": card.description,
-            "order": card.order
-        }
 
     return JsonResponse(list(map(get_card, cards)), safe=False)
 
