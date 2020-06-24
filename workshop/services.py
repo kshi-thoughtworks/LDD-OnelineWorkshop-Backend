@@ -247,161 +247,6 @@ def workbenches_ops_by_id(request, workbench_id):
         return HttpResponse(e, status=400)
 
 
-@login_required_401
-@require_http_methods(['POST'])
-def elements_stickers_ops(request):
-    return elements_ops(request, CreateSticker)
-
-
-@login_required_401
-@require_http_methods(['POST'])
-def elements_cards_ops(request):
-    return elements_ops(request, CreateCard)
-
-
-def elements_ops(request, createElement):
-    try:
-        createElement = createElement.Schema().loads(request.body)
-        element = Element(type=createElement.type,
-                          content=createElement.content,
-                          title=createElement.title,
-                          step=Step.objects.get(pk=createElement.step_id),
-                          created_by=request.user,
-                          version=0,
-                          meta=createElement.meta)
-        if createElement.card_id is not None:
-            element.card = Card.objects.get(pk=createElement.card_id)
-        element.save()
-        response = {
-            "element_id": element.id,
-            "version": element.version
-        }
-        return JsonResponse(response)
-    except ValidationError as e:
-        return HttpResponse(e, status=400)
-    except Exception as e:
-        return HttpResponse(e, status=500)
-
-
-@login_required_401
-@require_http_methods(['POST'])
-def elements_stickers_ops(request):
-    return elements_ops(request, CreateSticker)
-
-
-@login_required_401
-@require_http_methods(['POST'])
-def elements_cards_ops(request):
-    return elements_ops(request, CreateCard)
-
-
-@login_required_401
-@require_http_methods(['POST'])
-def copy_element_by_id(request, element_id):
-    try:
-        oldElement = Element.objects.get(pk=element_id)
-
-        element = Element(type=oldElement.type,
-                          title=oldElement.title,
-                          content=oldElement.content,
-                          step=Step.objects.get(pk=oldElement.step_id),
-                          created_by=request.user,
-                          version=0
-                          )
-        if oldElement.card_id is not None:
-            element.card = Card.objects.get(pk=oldElement.card_id)
-            newMeta = oldElement.meta.to_python(oldElement.meta)
-            newMeta["x"] = int(newMeta["x"]) + int(newMeta["width"])
-            newMeta["y"] = int(newMeta["y"]) + int(newMeta["height"])
-            element.meta = oldElement.meta.get_prep_value(newMeta)
-        element.save()
-        response = {
-            "element_id": element.id,
-            'type': element.type,
-            'title': element.title,
-            'content': element.content,
-            'step_id': element.step.id,
-            'card': element.card.name if element.card is not None else '',
-            'meta': element.meta,
-            "version": element.version,
-            'created_by': element.created_by.id
-        }
-        return JsonResponse(response)
-    except Exception as e:
-        return HttpResponse(e, status=500)
-
-
-@login_required_401
-@require_http_methods(['GET', 'PUT', 'DELETE'])
-def elements_ops_by_id(request, element_id):
-    try:
-        element = Element.objects.get(pk=element_id)
-        if request.method == 'GET':
-            return get_element_by_id(element)
-        if request.method == 'PUT':
-            return update_element_by_id(element, request)
-        if request.method == 'DELETE':
-            return delete_element_by_id(element)
-    except ValidationError as e:
-        return HttpResponse(e, status=400)
-
-
-def get_element_by_id(element):
-    return JsonResponse({
-        'type': element.type,
-        'title': element.title,
-        'content': element.content,
-        'step_id': element.step.id,
-        'card': element.card.name if element.card is not None else '',
-        'meta': element.meta,
-        "version": element.version,
-        'created_by': element.created_by.id})
-
-
-def update_element_by_id(element, request):
-    update_element = UpdateElement.Schema().loads(request.body)
-
-    if update_element.title.strip(' ') is not None:
-        element.title = update_element.title.strip(' ')
-    if update_element.content.strip(' ') is not None:
-        element.content = update_element.content.strip(' ')
-    if update_element.meta is not None:
-        element.meta = update_element.meta
-    element.version = element.version + 1
-    element.save()
-    return HttpResponse()
-
-
-def delete_element_by_id(element):
-    if element is not None:
-        element.delete()
-    return HttpResponse()
-
-
-@login_required_401
-@require_http_methods(['GET'])
-def list_elements_by_step(request, step_id):
-    elements = Element.objects.filter(step_id=step_id)
-
-    def get_element_data(element: Element):
-        data = {
-            'id': element.id,
-            'type': element.type,
-            'title': element.title,
-            'content': element.content,
-            'step_id': element.step.id,
-            'meta': element.meta,
-            "version": element.version,
-            'created_by': element.created_by.id
-        }
-        if element.card is not None:
-            data['card'] = CardService.get_card(element.card)
-        return data
-
-    elements_data = list(map(get_element_data, elements))
-    return JsonResponse(elements_data, safe=False)
-
-
 def index(request):
     request.META["CSRF_COOKIE_USED"] = True
     return render(request, 'index.html')
@@ -413,17 +258,164 @@ def my_require_http_methods(methods):
         @require_http_methods(methods)
         def wrap(*args, **kw):
             return func(*args, **kw)
+
         return wrap
+
     return decorator
 
 
-class CardService:
+class ElementService:
+
+    @staticmethod
+    @my_require_http_methods(['POST'])
+    def elements_stickers_ops(request):
+        return ElementService.elements_ops(request, CreateSticker)
+
+    @staticmethod
+    @my_require_http_methods(['POST'])
+    def elements_cards_ops(request):
+        return ElementService.elements_ops(request, CreateCard)
+
+    @staticmethod
+    def elements_ops(request, createElement):
+        try:
+            createElement = createElement.Schema().loads(request.body)
+            element = Element(type=createElement.type,
+                              content=createElement.content,
+                              title=createElement.title,
+                              step=Step.objects.get(pk=createElement.step_id),
+                              created_by=request.user,
+                              version=0,
+                              meta=createElement.meta)
+            if createElement.card_id is not None:
+                element.card = Card.objects.get(pk=createElement.card_id)
+            element.save()
+            response = {
+                "element_id": element.id,
+                "version": element.version
+            }
+            return JsonResponse(response)
+        except ValidationError as e:
+            return HttpResponse(e, status=400)
+        except Exception as e:
+            return HttpResponse(e, status=500)
+
+    @staticmethod
+    @my_require_http_methods(['POST'])
+    def elements_stickers_ops(request):
+        return ElementService.elements_ops(request, CreateSticker)
+
+    @staticmethod
+    @my_require_http_methods(['POST'])
+    def elements_cards_ops(request):
+        return ElementService.elements_ops(request, CreateCard)
+
+    @staticmethod
+    @my_require_http_methods(['POST'])
+    def copy_element_by_id(request, element_id):
+        try:
+            oldElement = Element.objects.get(pk=element_id)
+
+            element = Element(type=oldElement.type,
+                              title=oldElement.title,
+                              content=oldElement.content,
+                              step=Step.objects.get(pk=oldElement.step_id),
+                              created_by=request.user,
+                              version=0
+                              )
+            if oldElement.card_id is not None:
+                element.card = Card.objects.get(pk=oldElement.card_id)
+                newMeta = oldElement.meta.to_python(oldElement.meta)
+                newMeta["x"] = int(newMeta["x"]) + int(newMeta["width"])
+                newMeta["y"] = int(newMeta["y"]) + int(newMeta["height"])
+                element.meta = oldElement.meta.get_prep_value(newMeta)
+            element.save()
+            response = {
+                "element_id": element.id,
+                'type': element.type,
+                'title': element.title,
+                'content': element.content,
+                'step_id': element.step.id,
+                'card': element.card.name if element.card is not None else '',
+                'meta': element.meta,
+                "version": element.version,
+                'created_by': element.created_by.id
+            }
+            return JsonResponse(response)
+        except Exception as e:
+            return HttpResponse(e, status=500)
+
+    @staticmethod
+    @my_require_http_methods(['GET', 'PUT', 'DELETE'])
+    def elements_ops_by_id(request, element_id):
+        try:
+            element = Element.objects.get(pk=element_id)
+            if request.method == 'GET':
+                return ElementService.get_element_by_id(element)
+            if request.method == 'PUT':
+                return ElementService.update_element_by_id(element, request)
+            if request.method == 'DELETE':
+                return ElementService.delete_element_by_id(element)
+        except ValidationError as e:
+            return HttpResponse(e, status=400)
+
+    @staticmethod
+    def get_element_by_id(element):
+        return JsonResponse({
+            'type': element.type,
+            'title': element.title,
+            'content': element.content,
+            'step_id': element.step.id,
+            'card': element.card.name if element.card is not None else '',
+            'meta': element.meta,
+            "version": element.version,
+            'created_by': element.created_by.id})
+
+    @staticmethod
+    def update_element_by_id(element, request):
+        update_element = UpdateElement.Schema().loads(request.body)
+
+        if update_element.title.strip(' ') is not None:
+            element.title = update_element.title.strip(' ')
+        if update_element.content.strip(' ') is not None:
+            element.content = update_element.content.strip(' ')
+        if update_element.meta is not None:
+            element.meta = update_element.meta
+        element.version = element.version + 1
+        element.save()
+        return HttpResponse()
+
+    @staticmethod
+    def delete_element_by_id(element):
+        if element is not None:
+            element.delete()
+        return HttpResponse()
 
     @staticmethod
     @my_require_http_methods(['GET'])
-    def get_something(request):
-        return JsonResponse(list(["a", "b", "c"]), safe=False)
+    def list_elements_by_step(request, step_id):
+        elements = Element.objects.filter(step_id=step_id)
 
+        def get_element_data(element: Element):
+            data = {
+                'id': element.id,
+                'type': element.type,
+                'title': element.title,
+                'content': element.content,
+                'step_id': element.step.id,
+                'meta': element.meta,
+                "version": element.version,
+                'created_by': element.created_by.id
+            }
+            if element.card is not None:
+                data['card'] = CardService.get_card(element.card)
+            return data
+
+        elements_data = list(map(get_element_data, elements))
+        return JsonResponse(elements_data, safe=False)
+
+
+class CardService:
     @staticmethod
     def get_card(card: Card):
         if card is None:
