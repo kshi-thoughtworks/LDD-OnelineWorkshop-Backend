@@ -1,3 +1,7 @@
+from enum import Enum
+from functools import reduce
+
+
 class Element_type():
     # 便签
     STICKY = 'sticky'
@@ -18,7 +22,7 @@ class Card_type():
     SCENE = 'scene'
 
 
-class Tool_Card_type():
+class ToolCardTypes(Enum):
     # 变现卡
     MONETIZING = 'monetizing'
     # 技能卡
@@ -28,6 +32,10 @@ class Tool_Card_type():
     # 主题卡
     SUBJECT = 'subject'
 
+    @classmethod
+    def getMemberValues(cls):
+        return map(lambda a: a.value, ToolCardTypes.__members__.values())
+
 
 class StepTypes:
     DATA_PANORAMA = 'dataPanorama'
@@ -35,3 +43,4 @@ class StepTypes:
     DIVERGENCE_SCENE = 'divergenceScene'
     CONVERGENCE_SCENE = 'convergenceScene'
     GENERATE_REPORT = 'generateReport'
+

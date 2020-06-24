@@ -10,7 +10,7 @@ from marshmallow.exceptions import ValidationError
 from functools import reduce
 from django.db.models import Q
 
-from .enums import Card_type, StepTypes, Tool_Card_type
+from .enums import Card_type, StepTypes, ToolCardTypes
 from .models import User, UserWorkbench, Workbench, Step, Element, Card
 from .schemas import CreateUser, LoginUser, CreateWorkbench, AddUsers, UpdateWorkbench, CreateSticker, CreateCard, \
     UpdateElement
@@ -432,9 +432,10 @@ def get_cards_by_type(request, card_tpye):
 @login_required_401
 @require_http_methods(['GET'])
 def get_tools_cards(request):
-    condition = Q(sup_type=Tool_Card_type.MONETIZING) | Q(sup_type=Tool_Card_type.CLASS)
-    condition = condition | Q(sup_type=Tool_Card_type.SUBJECT) | Q(sup_type=Tool_Card_type.TECH)
 
+    toolsTypes = ToolCardTypes.getMemberValues()
+    conditions = map(lambda sup_type: Q(sup_type=sup_type), toolsTypes)
+    condition = reduce(lambda a, b: a | b, conditions)
     cards = Card.objects.filter(condition).order_by('sup_type').order_by('order')
 
     def get_card(card: Card):
