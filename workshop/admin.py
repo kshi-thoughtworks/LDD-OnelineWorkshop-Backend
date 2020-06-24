@@ -23,16 +23,16 @@ class UserCreationForm(forms.ModelForm):
 
 class UserAdmin(BaseUserAdmin):
     add_form = UserCreationForm
-    list_display = ('username', 'type', 'organization', 'phone', 'position')
+    list_display = ('username', 'email', 'type', 'organization', 'position')
     fieldsets = (
-        (None, {'fields': ('username', 'password')}),
+        (None, {'fields': ('username', 'password', 'email')}),
         ('Personal info', {'fields': ('type', 'organization', 'phone', 'position', 'is_staff')}),
         ('Permissions', {'fields': ('is_superuser',)}),
     )
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
-            'fields': ('username', 'password', 'type', 'organization', 'phone', 'position', 'is_staff'),
+            'fields': ('username', 'password', 'email', 'type', 'organization', 'phone', 'position', 'is_staff'),
         }),
     )
 

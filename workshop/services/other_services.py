@@ -97,10 +97,12 @@ def users_in_workbench(request, workbench_id: int):
         creator: User = Workbench.objects.get(id=workbench_id).created_by
 
         def get_user_data(user_workbench: UserWorkbench):
+            user: User = user_workbench.user
             return {
-                'username': user_workbench.user.username,
-                'email': user_workbench.user.email,
-                'role': RoleTypes.CREATOR if user_workbench.user == creator else RoleTypes.MEMBER
+                'id': user.id,
+                'username': user.username,
+                'email': user.email,
+                'role': RoleTypes.CREATOR if user == creator else RoleTypes.MEMBER
             }
 
         users_data = list(map(get_user_data, user_workbenches))
