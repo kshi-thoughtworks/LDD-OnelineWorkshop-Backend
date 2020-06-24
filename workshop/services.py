@@ -10,7 +10,7 @@ from marshmallow.exceptions import ValidationError
 from functools import reduce
 from django.db.models import Q
 
-from .enums import Card_type, StepTypes, ToolCardTypes
+from .enums import Card_type, StepTypes, RoleTypes, ToolCardTypes
 from .models import User, UserWorkbench, Workbench, Step, Element, Card
 from .schemas import CreateUser, LoginUser, CreateWorkbench, AddUsers, UpdateWorkbench, CreateSticker, CreateCard, \
     UpdateElement
@@ -96,11 +96,13 @@ def users_in_workbench(request, workbench_id: int):
     """
     if request.method == 'GET':
         user_workbenches = UserWorkbench.objects.filter(workbench=workbench_id).order_by('created_at')
+        creator: User = Workbench.objects.get(id=workbench_id).created_by
 
         def get_user_data(user_workbench: UserWorkbench):
             return {
                 'username': user_workbench.user.username,
-                'email': user_workbench.user.email
+                'email': user_workbench.user.email,
+                'role': RoleTypes.CREATOR if user_workbench.user == creator else RoleTypes.MEMBER
             }
 
         users_data = list(map(get_user_data, user_workbenches))
@@ -279,6 +281,18 @@ def elements_ops(request, createElement):
         return HttpResponse(e, status=400)
     except Exception as e:
         return HttpResponse(e, status=500)
+
+
+@login_required_401
+@require_http_methods(['POST'])
+def elements_stickers_ops(request):
+    return elements_ops(request, CreateSticker)
+
+
+@login_required_401
+@require_http_methods(['POST'])
+def elements_cards_ops(request):
+    return elements_ops(request, CreateCard)
 
 
 @login_required_401

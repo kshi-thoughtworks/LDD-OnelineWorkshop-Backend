@@ -1,5 +1,4 @@
 from enum import Enum
-from functools import reduce
 
 
 class Element_type():
@@ -44,3 +43,7 @@ class StepTypes:
     CONVERGENCE_SCENE = 'convergenceScene'
     GENERATE_REPORT = 'generateReport'
 
+
+class RoleTypes:
+    CREATOR = 'creator'
+    MEMBER = 'member'
