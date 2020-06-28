@@ -74,8 +74,8 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'ldd_workshop',
-        'USER': 'django',
-        'PASSWORD': '123456',
+        'USER': os.environ['LDD_DB_USER'],
+        'PASSWORD': os.environ['LDD_DB_PASSWORD'],
         'HOST': '127.0.0.1',
         'PORT': '3306',
     }
