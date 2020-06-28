@@ -35,6 +35,10 @@ jobs:
         username: ubuntu
         key: ${{ secrets.DEPLOY_KEY }}
         script: |
+          source ./.env
+          echo "User and pwd in server:"
+          echo ${LDD_DB_USER}
+          echo $LDD_DB_USER
           cd LDD-OnelineWorkshop-Front
           git reset --hard
           git pull
@@ -45,9 +49,6 @@ jobs:
           git pull
           mkdir frontend/static
           cp ../LDD-OnelineWorkshop-Front/dist/* ./frontend/static
-          echo "user and pwd in server:"
-          echo ${LDD_DB_USER}
-          echo $LDD_DB_USER
           sh deploy/build_image.sh
           sudo docker-compose -f deploy/docker-compose.yml down
           sudo docker-compose -f deploy/docker-compose.yml up -d
