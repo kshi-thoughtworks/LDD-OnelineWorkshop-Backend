@@ -1,6 +1,6 @@
 FROM python:3.7
-ENV LDD_DB_USER ${LDD_DB_USER}
-ENV LDD_DB_PASSWORD ${LDD_DB_PASSWORD}
+ENV LDD_DB_USER xxxx
+ENV LDD_DB_PASSWORD xxxx
 RUN mkdir -p /usr/src/app
 WORKDIR /usr/src/app
 COPY pip.conf /root/.pip/pip.conf
