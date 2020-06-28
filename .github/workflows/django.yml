@@ -35,10 +35,6 @@ jobs:
         username: ubuntu
         key: ${{ secrets.DEPLOY_KEY }}
         script: |
-          source ./.env
-          echo "User and pwd in server:"
-          echo ${LDD_DB_USER}
-          echo $LDD_DB_USER
           cd LDD-OnelineWorkshop-Front
           git reset --hard
           git pull
