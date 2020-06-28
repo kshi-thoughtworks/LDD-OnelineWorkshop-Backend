@@ -5,8 +5,8 @@ services:
     image: ldd-app:latest
     restart: always
     environment:
-      - LDD_DB_USER
-      - LDD_DB_PASSWORD
+      - LDD_DB_USER=${LDD_DB_USER}
+      - LDD_DB_PASSWORD=${LDD_DB_PASSWORD}
     ports:
       - '8088:8088'
     network_mode: 'host'
