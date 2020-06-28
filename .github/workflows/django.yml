@@ -35,6 +35,7 @@ jobs:
         username: ubuntu
         key: ${{ secrets.DEPLOY_KEY }}
         script: |
+          source ./.env
           cd LDD-OnelineWorkshop-Front
           git reset --hard
           git pull
