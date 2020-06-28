@@ -46,7 +46,7 @@ class WorkbenchAdmin(admin.ModelAdmin):
 
 
 class CardAdmin(admin.ModelAdmin):
-    list_display = ('name', 'type', 'description')
+    list_display = ('name', 'sup_type', 'type', 'description')
 
 
 class StepAdmin(admin.ModelAdmin):

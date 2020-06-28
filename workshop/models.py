@@ -17,7 +17,10 @@ class JSONField(models.TextField):
         return v
 
     def get_prep_value(self, value):
-        return json.dumps(value)
+        if type(value) is dict:
+            return json.dumps(value, ensure_ascii=False)
+        else:
+            return value
 
 
 class User(AbstractUser):
@@ -61,7 +64,7 @@ class Card(models.Model):
     type = models.CharField(max_length=20)
     # 父类卡的类型
     sup_type = models.CharField(max_length=20, default='')
-    description = models.CharField(max_length=1024)
+    description = JSONField()
     order = models.IntegerField(default=0)
 
     def __str__(self):
