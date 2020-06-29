@@ -127,6 +127,17 @@ def users_in_workbench(request, workbench_id: int):
 
 
 @login_required_401
+@require_http_methods(['DELETE'])
+def delete_user_in_workbench(request, workbench_id: int, user_id: int):
+    try:
+        user_workbench = UserWorkbench.objects.get(workbench=workbench_id, user=user_id)
+        user_workbench.delete()
+    except Exception as e:
+        return HttpResponse(e, status=400)
+    return HttpResponse()
+
+
+@login_required_401
 @require_http_methods(['GET', 'POST'])
 def workbenches_ops(request):
     # get user's workbenches
