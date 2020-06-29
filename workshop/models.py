@@ -84,7 +84,7 @@ class Step(models.Model):
 class Element(models.Model):
     type = models.CharField(max_length=20, default=Element_type.STICKY)
     title = models.CharField(max_length=1024, default='')
-    content = models.CharField(max_length=1024)
+    content = JSONField()
     step = models.ForeignKey(Step, on_delete=models.SET_NULL, null=True)
     card = models.ForeignKey(Card, on_delete=models.SET_NULL, null=True)
     version = models.IntegerField(default=0)
