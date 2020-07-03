@@ -127,10 +127,12 @@ class ElementService:
         if update_element.title.strip(' ') is not None:
             element.title = update_element.title.strip(' ')
         if update_element.content.strip(' ') is not None:
+            if update_element.version != element.version:
+                return HttpResponse('Incorrect version', status=422)
             element.content = update_element.content.strip(' ')
+            element.version = element.version + 1
         if update_element.meta is not None:
             element.meta = update_element.meta
-        element.version = element.version + 1
         element.save()
         return HttpResponse()
 
