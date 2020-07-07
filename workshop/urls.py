@@ -19,6 +19,7 @@ urlpatterns = [
     path('elements/<int:element_id>', ElementService.elements_ops_by_id, name='elements_ops_by_id'),
     path('elements/<int:element_id>/copy', ElementService.copy_element_by_id, name='copy_element_by_id'),
     path('steps/<int:step_id>/elements', ElementService.list_elements_by_step, name='list_elements_by_step'),
+    path('steps/<int:step_id>/data_cards', ElementService.list_data_cards_by_step, name='list_data_cards_by_step'),
     path('cards', CardService.get_cards, name='get_cards'),
     path('cards/tools', CardService.get_tools_cards, name='get_tools_cards'),
     path('cards/types', CardService.get_card_types, name='get_card_types'),

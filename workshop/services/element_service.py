@@ -2,11 +2,15 @@ import logging
 
 from django.http import HttpResponse
 from django.http import JsonResponse
+from django.db.models import Q
 from marshmallow.exceptions import ValidationError
+
+from workshop.enums import Card_type
 from workshop.models import Step, Element, Card
 from workshop.schemas import CreateSticker, CreateCard, UpdateElement
 from workshop.decorators import my_require_http_methods
 from workshop.services.card_service import CardService
+
 
 UNIQUE_ERROR_PREFIX = "UNIQUE constraint failed"
 
@@ -143,24 +147,31 @@ class ElementService:
         return HttpResponse()
 
     @staticmethod
+    def get_element_data(element: Element):
+        data = {
+            'id': element.id,
+            'type': element.type,
+            'title': element.title,
+            'content': element.content,
+            'step_id': element.step.id,
+            'meta': element.meta,
+            "version": element.version,
+            'created_by': element.created_by.id
+        }
+        if element.card is not None:
+            data['card'] = CardService.get_card(element.card)
+        return data
+
+    @staticmethod
     @my_require_http_methods(['GET'])
     def list_elements_by_step(request, step_id):
         elements = Element.objects.filter(step_id=step_id)
+        elements_data = list(map(ElementService.get_element_data, elements))
+        return JsonResponse(elements_data, safe=False)
 
-        def get_element_data(element: Element):
-            data = {
-                'id': element.id,
-                'type': element.type,
-                'title': element.title,
-                'content': element.content,
-                'step_id': element.step.id,
-                'meta': element.meta,
-                "version": element.version,
-                'created_by': element.created_by.id
-            }
-            if element.card is not None:
-                data['card'] = CardService.get_card(element.card)
-            return data
-
-        elements_data = list(map(get_element_data, elements))
+    @staticmethod
+    @my_require_http_methods(['GET'])
+    def list_data_cards_by_step(request, step_id):
+        elements = Element.objects.filter(Q(step_id=step_id) & Q(card__type__exact=Card_type.DATA))
+        elements_data = list(map(ElementService.get_element_data, elements))
         return JsonResponse(elements_data, safe=False)
