@@ -11,7 +11,6 @@ from workshop.schemas import CreateSticker, CreateCard, UpdateElement
 from workshop.decorators import my_require_http_methods
 from workshop.services.card_service import CardService
 
-
 UNIQUE_ERROR_PREFIX = "UNIQUE constraint failed"
 
 logger = logging.getLogger(__name__)
@@ -171,7 +170,7 @@ class ElementService:
 
     @staticmethod
     @my_require_http_methods(['GET'])
-    def list_data_cards_by_step(request, step_id):
-        elements = Element.objects.filter(Q(step_id=step_id) & Q(card__type__exact=Card_type.DATA))
+    def list_cards_by_step_and_type(request, step_id, card_tpye):
+        elements = Element.objects.filter(Q(step_id=step_id) & Q(card__type__exact=card_tpye))
         elements_data = list(map(ElementService.get_element_data, elements))
         return JsonResponse(elements_data, safe=False)
