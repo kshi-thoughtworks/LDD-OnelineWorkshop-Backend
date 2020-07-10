@@ -37,6 +37,7 @@ class ToolCardTypes(Enum):
 
 
 class StepTypes:
+    BUSINESS_VISION = 'businessVision'
     DATA_PANORAMA = 'dataPanorama'
     TECHNOLOGY_CARD = 'technologyCard'
     DIVERGENCE_SCENE = 'divergenceScene'

@@ -168,6 +168,11 @@ def workbenches_ops(request):
             # add default step
             default_steps = [
                 {
+                    'type': StepTypes.BUSINESS_VISION,
+                    'name': '业务愿景',
+                    'order': 0
+                },
+                {
                     'type': StepTypes.DATA_PANORAMA,
                     'name': '数据全景图',
                     'order': 10
