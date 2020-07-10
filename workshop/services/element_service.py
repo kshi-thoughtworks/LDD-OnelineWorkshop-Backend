@@ -5,7 +5,7 @@ from django.http import JsonResponse
 from django.db.models import Q
 from marshmallow.exceptions import ValidationError
 
-from workshop.enums import Card_type
+from workshop.enums import Card_type, StepTypes
 from workshop.models import Step, Element, Card
 from workshop.schemas import CreateSticker, CreateCard, UpdateElement
 from workshop.decorators import my_require_http_methods
@@ -29,6 +29,24 @@ class ElementService:
         return ElementService.elements_ops(request, CreateCard)
 
     @staticmethod
+    def create_ref_element(element):
+        if element.card is None or element.step.type != StepTypes.DIVERGENCE_SCENE or element.card.type != Card_type.SCENE:
+            return None
+
+        ref = Element(type=element.type,
+                      content=element.content,
+                      title=element.title,
+                      step=Step.objects.get(pk=element.step_id + 1),
+                      card=element.card,
+                      created_by=element.created_by,
+                      version=element.version,
+                      meta=element.meta
+                      )
+        ref.save()
+        element.ref_element = ref
+        return ref
+
+    @staticmethod
     def elements_ops(request, createElement):
         try:
             createElement = createElement.Schema().loads(request.body)
@@ -39,9 +57,14 @@ class ElementService:
                               created_by=request.user,
                               version=0,
                               meta=createElement.meta)
+
             if createElement.card_id is not None:
                 element.card = Card.objects.get(pk=createElement.card_id)
+            element.ref_element = ElementService.create_ref_element(element)
             element.save()
+            if element.ref_element is not None:
+                element.ref_element.ref_element = element
+                element.ref_element.save()
             response = {
                 "element_id": element.id,
                 "version": element.version
@@ -129,6 +152,7 @@ class ElementService:
 
         if update_element.title.strip(' ') is not None:
             element.title = update_element.title.strip(' ')
+
         if update_element.content.strip(' ') is not None and update_element.version is not None:
             if update_element.version != element.version:
                 return HttpResponse('Incorrect version', status=422)
@@ -137,7 +161,19 @@ class ElementService:
         if update_element.meta is not None:
             element.meta = update_element.meta
         element.save()
+        ElementService.update_ref_element(element)
         return HttpResponse()
+
+    @staticmethod
+    def update_ref_element(element):
+        ref = element.ref_element
+        if ref is None:
+            return
+        ref.title = element.title
+        ref.content = element.content
+        ref.version = element.version
+        ref.meta = element.meta
+        ref.save()
 
     @staticmethod
     def delete_element_by_id(element):

@@ -91,6 +91,7 @@ class Element(models.Model):
     # save properties, such as: x, y, height, width, rotate, scale, color, length
     meta = JSONField(max_length=1024, null=True)
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    ref_element = models.ForeignKey('self', on_delete=models.CASCADE, null=True)
 
     def __str__(self):
         return self.content
