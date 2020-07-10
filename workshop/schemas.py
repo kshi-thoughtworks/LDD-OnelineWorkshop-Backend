@@ -49,7 +49,6 @@ class CreateCard:
     type: str = field(init=False, default=Element_type.CARD)
     title: str = field(metadata={"validate": marshmallow.validate.Length(min=0, max=20)})
     step_id: int = field()
-    ref_step_id: int = field(default=None)
     content: str = field(metadata={"validate": marshmallow.validate.Length(min=0, max=1024)}, default='')
     card_id: int = field(default=None)
     # save properties, like: rotate, scale, color, length
