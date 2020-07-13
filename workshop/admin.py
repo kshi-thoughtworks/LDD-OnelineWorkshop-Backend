@@ -50,7 +50,7 @@ class CardAdmin(admin.ModelAdmin):
 
 
 class StepAdmin(admin.ModelAdmin):
-    list_display = ('name', 'workbench', 'order')
+    list_display = ('id', 'name', 'workbench', 'order')
 
 
 class StickerAdmin(admin.ModelAdmin):

@@ -14,6 +14,7 @@ urlpatterns = [
     path('workbenches/<int:workbench_id>', other_services.workbenches_ops_by_id, name='workbenches_ops_by_id'),
     path('workbenches/<int:workbench_id>/users', other_services.users_in_workbench, name='users_in_workbench'),
     path('workbenches/<int:workbench_id>/users/<int:user_id>', other_services.delete_user_in_workbench, name='delete_user_in_workbench'),
+    path('workbenches/<int:workbench_id>/steps/<str:step_type>/elements/types/<str:card_type>', ElementService.elements_in_workbench_step, name='elements_in_workbench_step'),
     path('elements/sticker', ElementService.elements_stickers_ops, name='elements_stickers_ops'),
     path('elements/card', ElementService.elements_cards_ops, name='elements_cards_ops'),
     path('elements/<int:element_id>', ElementService.elements_ops_by_id, name='elements_ops_by_id'),

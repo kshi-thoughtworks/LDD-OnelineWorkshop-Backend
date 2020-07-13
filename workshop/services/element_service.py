@@ -210,3 +210,12 @@ class ElementService:
         elements = Element.objects.filter(Q(step_id=step_id) & Q(card__type__exact=card_tpye))
         elements_data = list(map(ElementService.get_element_data, elements))
         return JsonResponse(elements_data, safe=False)
+
+    @staticmethod
+    @my_require_http_methods(['GET'])
+    def elements_in_workbench_step(request, workbench_id: int, step_type: str, card_type: str):
+        try:
+            step = Step.objects.get(Q(workbench_id=workbench_id) & Q(type=step_type))
+        except Step.DoesNotExist:
+            return HttpResponse("step not exist", status=400)
+        return ElementService.list_cards_by_step_and_type(request, step.id, card_type)
